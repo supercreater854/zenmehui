@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* 微信极简风：系统中文字体栈 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+}
+
+/* 全局过渡 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* textarea 聚焦样式 */
+textarea:focus {
+  outline: none;
+}
