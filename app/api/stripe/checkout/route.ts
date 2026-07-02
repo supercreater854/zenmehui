@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { PRICING_TIER_LIST, type PricingTier } from '@/lib/credits'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe(): Stripe {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!)
+}
 
-const PRICE_YUAN = 9.9
+// 找对应档位（默认 100 积分）
+function findTier(tierParam: string | undefined): PricingTier {
+  if (tierParam) {
+    const found = PRICING_TIER_LIST.find(t => t.tier === tierParam)
+    if (found) return found
+  }
+  return PRICING_TIER_LIST[0]
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { user_id } = await request.json()
+    const stripe = getStripe()
+    const { user_id, tier: tierParam } = await request.json()
 
     if (!user_id || typeof user_id !== 'string') {
       return NextResponse.json(
@@ -16,21 +27,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tier = findTier(tierParam)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+    // 产品描述映射
+    // lifetime 的 credits=-1，webhook 据此识别无限
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
-      metadata: { user_id },
+      metadata: {
+        user_id,
+        tier: tier.tier,
+        credits: String(tier.credits), // -1 表示 lifetime
+        price_yuan: String(tier.price),
+      },
       line_items: [
         {
           price_data: {
             currency: 'cny',
             product_data: {
-              name: '怎么回 - 永久会员',
-              description: '解锁无限次数，畅享 AI 聊天回复生成',
+              name: `怎么回 · ${tier.name}`,
+              description: tier.desc,
             },
-            unit_amount: Math.round(PRICE_YUAN * 100), // Stripe 以分为单位
+            unit_amount: Math.round(tier.price * 100),
           },
           quantity: 1,
         },

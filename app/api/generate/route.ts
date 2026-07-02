@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateReplies } from '@/lib/ai'
-import { checkDailyLimit, logUsage } from '@/lib/user'
+import { logUsage } from '@/lib/user'
+import { consumeCredit, getRemainingCredits } from '@/lib/credits'
 
-const DAILY_LIMIT = 10
-
-// ====== API Handler ======
 export async function POST(request: NextRequest) {
-  // 从请求 body 中提取 user_id（前端 localStorage UUID）
   let userId: string | null = null
 
   try {
@@ -19,7 +16,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // 缺少 user_id → 拒绝
   if (!userId || typeof userId !== 'string') {
     return NextResponse.json(
       { success: false, error: '缺少用户标识', type: 'user' },
@@ -27,59 +23,63 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // ====== 每日限制检查（Supabase） ======
-  const limit = await checkDailyLimit(userId)
-
-  if (!limit.allowed) {
-    return NextResponse.json(
-      { success: false, error: limit.reason || '今日免费次数已用完', type: 'limit' },
-      { status: 429 }
-    )
-  }
-
-  const isVIP = limit.user.vip
-
   try {
-    const body = await request.json()
-    const { message } = body
+    // ====== 积分检查 ======
+    const creditCheck = await consumeCredit(userId)
 
-    // 用户错误：空输入
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: creditCheck.reason || '积分不足，请充值', type: 'limit', remaining: creditCheck.remaining },
+        { status: 429 }
+      )
+    }
+
+    const body = await request.json()
+    const { message, intimacy, style } = body
+
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      console.log(`[ANALYTICS] user_id=${userId} vip=${isVIP} success=false limited=false`)
+      console.log(`[ANALYTICS] user_id=${userId} success=false reason=empty_input remaining=${creditCheck.remaining}`)
       return NextResponse.json(
         { success: false, error: '请输入聊天内容', type: 'user' },
         { status: 400 }
       )
     }
 
-    // 用户错误：超长输入
     if (message.trim().length > 2000) {
-      console.log(`[ANALYTICS] user_id=${userId} vip=${isVIP} success=false limited=false`)
+      console.log(`[ANALYTICS] user_id=${userId} success=false reason=too_long remaining=${creditCheck.remaining}`)
       return NextResponse.json(
         { success: false, error: '内容过长，请控制在2000字以内', type: 'user' },
         { status: 400 }
       )
     }
 
-    // 调 AI 生成
-    const result = await generateReplies(message.trim())
+    const result = await generateReplies(message.trim(), intimacy, style)
 
-    // 写入使用日志
-    await logUsage({ userId, scene: result.scene, success: true })
+    await logUsage({ userId, scene: 'generated', success: true })
 
     console.log(
-      `[ANALYTICS] user_id=${userId} vip=${isVIP} success=true scene=${result.scene} remaining=${DAILY_LIMIT - (isVIP ? 0 : limit.user.daily_count)}`
+      `[ANALYTICS] user_id=${userId} success=true replies=${result.replies.length} remaining=${creditCheck.remaining}`
     )
-    return NextResponse.json(result)
+    return NextResponse.json({ success: true, ...result, remaining: creditCheck.remaining })
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'unknown'
+    console.error(`[ERROR] generate route failed: ${reason}`)
+    if (error instanceof Error && error.stack) {
+      console.error(`[ERROR] stack: ${error.stack.split('\n').slice(0, 3).join('\n')}`)
+    }
 
-    // 失败也记录日志
     await logUsage({ userId, scene: 'unknown', success: false }).catch(() => {})
 
-    console.log(`[ANALYTICS] user_id=${userId} vip=${isVIP} success=false reason=${reason}`)
+    // 查询剩余积分（用于错误响应）
+    let remaining = -1
+    try {
+      const info = await getRemainingCredits(userId)
+      remaining = info.credits
+    } catch { /* ignore */ }
+
+    console.error(`[ANALYTICS] user_id=${userId} error=${reason}`)
     return NextResponse.json(
-      { success: false, error: 'AI生成失败，请重试', type: 'system' },
+      { success: false, error: 'AI生成失败，请重试', type: 'system', remaining },
       { status: 500 }
     )
   }

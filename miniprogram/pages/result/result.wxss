@@ -1,0 +1,124 @@
+.page { padding: 24rpx 32rpx; min-height: 100vh; background: #f3f4f6; }
+
+.header {
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  text-align: center;
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(16,185,129,0.15);
+}
+.header-title { font-size: 34rpx; font-weight: 700; color: #fff; }
+.header-desc { display: block; margin-top: 4rpx; font-size: 22rpx; color: rgba(255,255,255,0.55); }
+.intimacy-ctrl {
+  margin-top: 20rpx;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15);
+  border-radius: 16rpx;
+  padding: 12rpx 24rpx;
+}
+.ctrl-btn {
+  width: 56rpx; height: 56rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12rpx;
+  font-size: 36rpx;
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.1);
+}
+.ctrl-label { margin: 0 24rpx; font-size: 26rpx; color: #fff; font-weight: 500; }
+
+.loading-hint { text-align: center; padding: 12rpx; font-size: 26rpx; color: #9ca3af; }
+
+.reply-list { display: flex; flex-direction: column; gap: 20rpx; }
+
+.reply-card {
+  display: flex;
+  background: #fff;
+  border-radius: 20rpx;
+  border-left: 6rpx solid #d1d5db;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+.reply-card.copied { background: #ecfdf5; }
+.reply-body { flex: 1; }
+.reply-text { font-size: 30rpx; line-height: 1.7; color: #1f2937; }
+.reply-continue { margin-top: 12rpx; font-size: 24rpx; color: #059669; font-weight: 500; }
+
+.reply-actions {
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  gap: 8rpx;
+  margin-left: 16rpx;
+}
+.action-btn {
+  padding: 10rpx 20rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+  background: #f3f4f6;
+  border-radius: 12rpx;
+  text-align: center;
+}
+.action-btn:active { background: #e5e7eb; }
+.action-done { color: #059669; background: #d1fae5; }
+
+.footer { margin-top: 40rpx; display: flex; flex-direction: column; gap: 16rpx; }
+
+.btn-save {
+  width: 100%; padding: 24rpx;
+  font-size: 28rpx; font-weight: 500;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: none; border-radius: 20rpx;
+}
+.btn-save::after { border: none; }
+
+.btn-again {
+  width: 100%; padding: 24rpx;
+  font-size: 28rpx; font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  border: none; border-radius: 20rpx;
+}
+.btn-again::after { border: none; }
+.btn-again[disabled] { opacity: 0.5; }
+
+.btn-back {
+  width: 100%; padding: 24rpx;
+  font-size: 28rpx;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+}
+.btn-back::after { border: none; }
+
+/* 保存弹窗 */
+.save-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
+.save-mask { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); }
+.save-dialog {
+  position: relative;
+  width: 560rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+}
+.save-title { font-size: 32rpx; font-weight: 600; }
+.save-input {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  background: #f3f4f6;
+  border-radius: 16rpx;
+}
+.save-btns { display: flex; gap: 16rpx; margin-top: 24rpx; }
+.save-cancel {
+  flex: 1; padding: 20rpx;
+  font-size: 28rpx; color: #6b7280;
+  background: #f3f4f6; border: none; border-radius: 16rpx;
+}
+.save-confirm {
+  flex: 1; padding: 20rpx;
+  font-size: 28rpx; font-weight: 600; color: #fff;
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  border: none; border-radius: 16rpx;
+}
+.save-cancel::after, .save-confirm::after { border: none; }

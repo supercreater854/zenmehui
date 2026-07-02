@@ -1,0 +1,43 @@
+<view class="page">
+  <view class="bar">
+    <navigator class="back-btn" url="/pages/contacts/contacts" open-type="navigateBack">返回</navigator>
+    <text class="title">{{isNew ? '新建联系人' : '编辑联系人'}}</text>
+    <view></view>
+  </view>
+
+  <!-- 昵称 -->
+  <view class="section">
+    <text class="label">昵称</text>
+    <input class="input" placeholder="输入昵称" value="{{name}}" bindinput="onNameInput"/>
+  </view>
+
+  <!-- 关系 -->
+  <view class="section">
+    <text class="label">关系</text>
+    <view class="relation-grid">
+      <view
+        class="rel-tag {{relation === item ? 'rel-active' : ''}}"
+        wx:for="{{relations}}"
+        wx:key="*this"
+        data-rel="{{item}}"
+        bindtap="onRelationTap"
+      >{{item}}</view>
+    </view>
+  </view>
+
+  <!-- 亲密度 -->
+  <view class="section">
+    <text class="label">{{intimacyLabel}} · {{intimacy}}</text>
+    <slider
+      min="0" max="100"
+      value="{{intimacy}}"
+      bindchange="onIntimacyChange"
+      activeColor="#10b981"
+      block-size="20"
+    />
+  </view>
+
+  <!-- 操作 -->
+  <button class="btn-save" bindtap="onSave">{{saved ? '已保存' : '保存'}}</button>
+  <button class="btn-delete" bindtap="onDelete" wx:if="{{!isNew}}">删除联系人</button>
+</view>

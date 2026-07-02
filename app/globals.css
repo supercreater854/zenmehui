@@ -5,6 +5,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 全局过渡 */
@@ -12,7 +14,150 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* textarea 聚焦样式 */
 textarea:focus {
   outline: none;
+}
+
+/* ====== iOS 风格动画系统 ====== */
+
+/* 卡片入场：从下方滑入 + 淡入 */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 淡入 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 弹性缩放入场（模态框） */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 轻微上浮 */
+@keyframes floatUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 脉冲（复制成功等反馈） */
+@keyframes pulseOnce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ====== 工具类 ====== */
+
+.animate-card-in {
+  animation: cardIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.animate-float-up {
+  animation: floatUp 0.3s ease-out both;
+}
+
+.animate-pulse-once {
+  animation: pulseOnce 0.3s ease-out;
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 3s linear infinite;
+}
+
+/* 卡片列表交错延迟 */
+.animate-card-in:nth-child(1) { animation-delay: 0.05s; }
+.animate-card-in:nth-child(2) { animation-delay: 0.12s; }
+.animate-card-in:nth-child(3) { animation-delay: 0.19s; }
+.animate-card-in:nth-child(4) { animation-delay: 0.26s; }
+
+/* ====== 全局交互增强 ====== */
+
+/* 所有可交互元素：iOS 风格弹性按压 */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 0.15s ease-out;
+}
+
+/* 触摸反馈（通过 active: 在 Tailwind 中已支持，这里做全局兜底） */
+@media (hover: none) {
+  button:active {
+    transform: scale(0.96);
+  }
+}
+
+/* 输入框聚焦平滑过渡 */
+input, textarea {
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+input:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Toast 入场（由 Toast 组件控制） */
+.toast-enter {
+  animation: floatUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* 页面过渡（Next.js 内联 style 配合） */
+.page-enter {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
 }

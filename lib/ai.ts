@@ -1,48 +1,65 @@
-import type { GenerateResponse, Scene } from './types'
+import type { GenerateResponse } from './types'
+import { formatIntimacyForPrompt } from './intimacy'
 
-// 环境变量：通过 process.env 注入，兼容 OpenAI / DeepSeek
 const AI_API_KEY = process.env.AI_API_KEY || ''
 const AI_BASE_URL = process.env.AI_BASE_URL || 'https://api.deepseek.com'
 const AI_MODEL = process.env.AI_MODEL || 'deepseek-chat'
 
-// 固定 System Prompt
-const SYSTEM_PROMPT = `你是"聊天回复决策AI"，不是聊天机器人。
-任务：根据用户聊天内容生成5种可直接发送回复。
-规则：
-- 不解释
-- 不分析
-- 不建议
-- 只输出JSON
-- 每条1-3句话
-- 必须可直接发送
-输出格式必须严格JSON：
-{"replies":[{"type":"standard","text":""},{"type":"polite","text":""},{"type":"short","text":""},{"type":"funny","text":""},{"type":"strong","text":""}],"scene":"work|love|social"}`
+// ====== 主 prompt：像人一样说话 ======
+const SYSTEM_PROMPT = `你就是一个正在帮朋友想怎么回微信的人。
 
-// Fallback 兜底回复
+核心：你不是客服，不是AI，你是他哥们/闺蜜。
+说话方式：像微信聊天。短。直接。带语气。不要铺垫不要解释。
+
+三条回复，风格拉开：
+
+1. 走心挂 → 暖、真诚、说到点上。但别啰嗦，两句话够。
+2. 幽默挂 → 巧、反转、让人笑。自嘲或打趣都行。
+3. 直接挂 → 快、准、不绕弯。一句到位，像朋友在耳边说的。
+
+每条1-2句话。多用"啊 吧 呢 哈 嘛 哎 哦"这些语气词。
+不要写成作文。不要"首先其次最后"。就是聊天。
+
+输出JSON：
+{"replies":["走心短回复","幽默短回复","直接短回复"]}`
+
+// ====== sharp 模式：真正阴阳怪气 ======
+const SHARP_PROMPT = `你是阴阳怪气大师。
+
+风格参考：
+- "啊对对对"
+- "嗯嗯你说得都对"
+- "好的呢亲"
+- "那你很厉害哦"
+- "你开心就好"
+- "哦"
+- "6"
+
+要点：
+- 短。极其短。几个字能解决就别写句子。
+- 表面上顺着对方，实际上谁都听得出来你在反讽。
+- 像网上那些经典阴阳怪气回复一样，又轻又毒。
+- 不带脏字，不人身攻击。就是让人愣一下，然后想笑。
+
+三条回复明显不同：
+1. 客气型 → 表面客气周到，话外全是刀
+2. 反讽型 → 用夸奖的方式嘲讽
+3. 暴击型 → 极短，冷淡，一个字到一句话
+
+输出JSON：
+{"replies":["客气型","反讽型","暴击型"]}`
+
+// ====== Fallback ======
 const FALLBACK: GenerateResponse = {
-  replies: [
-    { type: 'standard', text: '好的' },
-    { type: 'polite', text: '明白了，我处理一下' },
-    { type: 'short', text: '好的' },
-    { type: 'funny', text: '哈哈好的' },
-    { type: 'strong', text: '这个我这边不太方便' },
-  ],
-  scene: 'unknown',
+  replies: ['嗯明白', '哈哈哈好的', '收到'],
 }
 
-// 构建 Prompt
-function buildPrompt(message: string, retryHint?: string): { system: string; user: string } {
-  const user = retryHint
-    ? `${message}\n\n${retryHint}`
-    : message
-  return { system: SYSTEM_PROMPT, user }
+const SHARP_FALLBACK: GenerateResponse = {
+  replies: ['嗯嗯你说得对', '那你很棒哦', '6'],
 }
 
-// 调用 AI API（兼容 OpenAI 格式）
-// 内含 30 秒超时控制
-async function callAI(message: string, retryHint?: string): Promise<string> {
-  const { system, user } = buildPrompt(message, retryHint)
-
+// ====== 通用 AI 调用 ======
+async function callAI(system: string, user: string): Promise<string> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 30000)
 
@@ -59,8 +76,8 @@ async function callAI(message: string, retryHint?: string): Promise<string> {
           { role: 'system', content: system },
           { role: 'user', content: user },
         ],
-        temperature: 0.7,
-        max_tokens: 2000,
+        temperature: 0.95,
+        max_tokens: 800,
       }),
       signal: controller.signal,
     })
@@ -74,7 +91,7 @@ async function callAI(message: string, retryHint?: string): Promise<string> {
     return data.choices?.[0]?.message?.content || ''
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error("AI请求超时，请稍后重试")
+      throw new Error('AI请求超时，请稍后重试')
     }
     throw error
   } finally {
@@ -82,49 +99,24 @@ async function callAI(message: string, retryHint?: string): Promise<string> {
   }
 }
 
-// 从 AI 返回文本中提取并解析 JSON
-function tryParseJSON(raw: string): GenerateResponse | null {
-  let cleaned = raw.trim()
-
-  // 去掉 markdown 代码块包裹
-  const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (codeBlockMatch) {
-    cleaned = codeBlockMatch[1].trim()
-  }
-
-  // 尝试提取第一个完整的 JSON 对象
-  const jsonMatch = cleaned.match(/\{[\s\S]*"scene"[\s\S]*\}/)
-  if (jsonMatch) {
-    cleaned = jsonMatch[0]
-  }
-
+// ====== JSON 解析 ======
+function parseResponse(raw: string): GenerateResponse | null {
   try {
-    const parsed = JSON.parse(cleaned)
+    let cleaned = raw.trim()
+    const codeBlock = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/)
+    if (codeBlock) cleaned = codeBlock[1].trim()
 
-    // 校验结构
-    if (
-      parsed &&
-      Array.isArray(parsed.replies) &&
-      parsed.replies.length > 0 &&
-      typeof parsed.scene === 'string'
-    ) {
-      // 确保每条回复都有 type 和 text
-      const validReplies = parsed.replies
-        .filter((r: unknown): r is { type: string; text: string } => {
-          if (typeof r !== 'object' || r === null) return false
-          const obj = r as Record<string, unknown>
-          return typeof obj.type === 'string' && typeof obj.text === 'string'
-        })
-        .map((r: { type: string; text: string }) => ({ type: r.type, text: r.text }))
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return null
 
-      if (validReplies.length > 0) {
-        return {
-          replies: validReplies,
-          scene: (['work', 'love', 'social'].includes(parsed.scene)
-            ? parsed.scene
-            : 'unknown') as Scene,
-        }
-      }
+    const parsed = JSON.parse(jsonMatch[0])
+
+    if (Array.isArray(parsed.replies) && parsed.replies.length > 0) {
+      const replies = parsed.replies
+        .filter((r: unknown): r is string => typeof r === 'string' && r.trim().length > 0)
+        .map((r: string) => r.trim())
+
+      if (replies.length > 0) return { replies }
     }
     return null
   } catch {
@@ -132,21 +124,28 @@ function tryParseJSON(raw: string): GenerateResponse | null {
   }
 }
 
-// 主入口：生成回复（含 retry + fallback）
-export async function generateReplies(message: string): Promise<GenerateResponse> {
-  // 一次尝试
-  let raw = await callAI(message)
-  let result = tryParseJSON(raw)
+// ====== 主入口 ======
+export async function generateReplies(
+  message: string,
+  intimacy?: number,
+  style?: string,
+): Promise<GenerateResponse> {
+  const basePrompt = style === 'sharp' ? SHARP_PROMPT : SYSTEM_PROMPT
+
+  const prompt = intimacy != null
+    ? `${basePrompt}\n\n关系程度：${formatIntimacyForPrompt(intimacy)}`
+    : basePrompt
+
+  const userMessage = `对方发来："${message}"`
+
+  let raw = await callAI(prompt + '\n\n别写作文。短。像真人。', userMessage)
+  let result = parseResponse(raw)
   if (result) return result
 
-  // retry 前等待 300ms
   await new Promise(resolve => setTimeout(resolve, 300))
-
-  // 二次请求修复（使用更简短的提示词降低成本）
-  raw = await callAI(message, '请简短、直接输出JSON，不要解释')
-  result = tryParseJSON(raw)
+  raw = await callAI(prompt, `${userMessage}\n\n直接输出JSON，别啰嗦`)
+  result = parseResponse(raw)
   if (result) return result
 
-  // 兜底
-  return FALLBACK
+  return style === 'sharp' ? SHARP_FALLBACK : FALLBACK
 }

@@ -1,0 +1,17 @@
+{
+  "name": "怎么回 - AI聊天回复生成",
+  "short_name": "怎么回",
+  "description": "不会回消息？AI 帮你一键生成可直接发送的回复",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

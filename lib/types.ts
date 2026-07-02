@@ -1,22 +1,11 @@
-// 聊天回复类型
-export type ReplyType = 'standard' | 'polite' | 'short' | 'funny' | 'strong'
+// ====== API 请求/返回 ======
 
-// 场景识别
-export type Scene = 'work' | 'love' | 'social' | 'unknown'
-
-// 单条回复
-export interface Reply {
-  type: ReplyType
-  text: string
-}
-
-// API 返回结构
-export interface GenerateResponse {
-  replies: Reply[]
-  scene: Scene
-}
-
-// API 请求结构
 export interface GenerateRequest {
   message: string
+  user_id?: string
+}
+
+// 收敛版：只返回纯文本回复数组
+export interface GenerateResponse {
+  replies: string[]
 }

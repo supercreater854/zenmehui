@@ -1,0 +1,34 @@
+<view class="page">
+  <view class="bar">
+    <navigator class="back-btn" url="/pages/index/index" open-type="navigateBack">返回</navigator>
+    <text class="title">联系人</text>
+    <text class="new-btn" bindtap="onShowNew">新建</text>
+  </view>
+
+  <!-- 新建弹窗 -->
+  <view class="new-card" wx:if="{{showNew}}">
+    <input class="new-input" placeholder="输入昵称" value="{{newName}}" bindinput="onNewNameInput" focus/>
+    <view class="new-actions">
+      <button class="new-confirm" bindtap="onCreateContact">创建</button>
+      <button class="new-cancel" bindtap="onHideNew">取消</button>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{contacts.length === 0 && !showNew}}">
+    <text class="empty-text">还没有联系人</text>
+    <button class="empty-btn" bindtap="onShowNew">添加第一个联系人</button>
+  </view>
+
+  <!-- 联系人列表 -->
+  <view class="list" wx:else>
+    <view class="contact-item" wx:for="{{contacts}}" wx:key="id" data-id="{{item.id}}" bindtap="onTapContact">
+      <view class="avatar">{{item.name[0]}}</view>
+      <view class="info">
+        <text class="name">{{item.name}}</text>
+        <text class="meta">{{item.relation}} · {{item.intimacy}}</text>
+      </view>
+      <view class="del-btn" data-id="{{item.id}}" catchtap="onDelete">×</view>
+    </view>
+  </view>
+</view>

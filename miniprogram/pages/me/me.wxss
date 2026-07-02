@@ -1,0 +1,50 @@
+.page { padding: 0 32rpx; min-height: 100vh; background: #f3f4f6; }
+.bar { display: flex; align-items: center; justify-content: space-between; padding: 24rpx 0; margin-bottom: 24rpx; }
+.back-btn { font-size: 28rpx; color: #9ca3af; }
+.title { font-size: 34rpx; font-weight: 600; color: #1f2937; }
+
+.card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  margin-bottom: 24rpx;
+}
+.user-row { display: flex; align-items: center; gap: 20rpx; }
+.avatar {
+  width: 88rpx; height: 88rpx; border-radius: 50%;
+  background: #d1fae5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; font-weight: 700; color: #059669;
+  flex-shrink: 0;
+}
+.user-name { font-size: 32rpx; font-weight: 500; color: #1f2937; display: block; }
+.user-id { font-size: 24rpx; color: #9ca3af; margin-top: 4rpx; display: block; }
+
+.stats { display: flex; margin-top: 24rpx; padding-top: 24rpx; border-top: 1rpx solid #f3f4f6; }
+.stat { flex: 1; text-align: center; }
+.stat-num { font-size: 34rpx; font-weight: 600; color: #1f2937; display: block; }
+.stat-num.emerald { color: #059669; }
+.stat-label { font-size: 24rpx; color: #9ca3af; margin-top: 4rpx; display: block; }
+
+.menu {
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+.menu-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 28rpx 32rpx;
+  font-size: 30rpx; color: #1f2937;
+  border-bottom: 1rpx solid #f3f4f6;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-hint { font-size: 26rpx; color: #9ca3af; }
+.danger { color: #ef4444; }
+
+.home-link {
+  display: block; text-align: center;
+  padding: 32rpx 0;
+  font-size: 28rpx; color: #9ca3af;
+}

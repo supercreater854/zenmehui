@@ -1,0 +1,62 @@
+<view class="page">
+  <!-- Header -->
+  <view class="header">
+    <text class="header-title">AI 帮你想到了这些</text>
+    <text class="header-desc">仅供参考，建议根据实际情况调整</text>
+
+    <!-- 亲密度调节 -->
+    <view class="intimacy-ctrl">
+      <view class="ctrl-btn" data-delta="-1" bindtap="adjustIntimacy">−</view>
+      <text class="ctrl-label">{{intimacyLabel}} · {{intimacy}}</text>
+      <view class="ctrl-btn" data-delta="1" bindtap="adjustIntimacy">+</view>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-hint" wx:if="{{reloading}}">正在重新生成...</view>
+
+  <!-- 回复卡片 -->
+  <view class="reply-list">
+    <view
+      class="reply-card {{copiedIdx === index ? 'copied' : ''}}"
+      wx:for="{{replies}}"
+      wx:key="index"
+      style="border-left-color: {{tier.color}}"
+    >
+      <view class="reply-body">
+        <text class="reply-text">{{item}}</text>
+        <view class="reply-continue" wx:if="{{copiedIdx === index}}" bindtap="onContinue">继续聊 →</view>
+      </view>
+      <view class="reply-actions">
+        <view class="action-btn {{copiedIdx === index ? 'action-done' : ''}}" data-idx="{{index}}" bindtap="copyText">
+          {{copiedIdx === index ? '已复制' : '复制'}}
+        </view>
+        <view class="action-btn" data-idx="{{index}}" bindtap="regenOne">
+          {{regeningIdx === index ? '换...' : '换说法'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="footer">
+    <button class="btn-save" bindtap="onShowSave">加入联系人</button>
+    <button class="btn-again" bindtap="regenerateAll" disabled="{{reloading}}">
+      {{reloading ? '正在生成...' : '再来一组'}}
+    </button>
+    <button class="btn-back" bindtap="onContinue">返回首页</button>
+  </view>
+
+  <!-- 保存联系人弹窗 -->
+  <view class="save-modal" wx:if="{{showSave}}">
+    <view class="save-mask" bindtap="onHideSave"></view>
+    <view class="save-dialog">
+      <text class="save-title">添加联系人</text>
+      <input class="save-input" placeholder="输入昵称" value="{{contactName}}" bindinput="onNameInput" focus/>
+      <view class="save-btns">
+        <button class="save-cancel" bindtap="onHideSave">取消</button>
+        <button class="save-confirm" bindtap="onSaveContact">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,23 @@
+/* 全局样式 — 品牌色系 emerald */
+page {
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  color: #1f2937;
+  background: #f3f4f6;
+}
+
+/* 通用渐变按钮 */
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  color: #fff;
+  border-radius: 16rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 白卡片 */
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}

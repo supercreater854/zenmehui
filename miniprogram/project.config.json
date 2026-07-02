@@ -1,0 +1,15 @@
+{
+  "description": "怎么回 - AI 聊天回复生成器",
+  "packOptions": { "ignore": [] },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.3.0",
+  "appid": "",
+  "projectname": "zenmehui",
+  "condition": {}
+}

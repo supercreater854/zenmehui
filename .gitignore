@@ -32,6 +32,14 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+env.txt
+
+# edgeone
+.edgeone/
+
+# deploy artifacts
+deploy.zip
+deploy.cmd
 
 # vercel
 .vercel
@@ -39,3 +47,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

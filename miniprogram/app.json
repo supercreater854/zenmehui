@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/result/result",
+    "pages/contacts/contacts",
+    "pages/contact-detail/contact-detail",
+    "pages/me/me"
+  ],
+  "window": {
+    "navigationBarTitleText": "怎么回",
+    "navigationBarBackgroundColor": "#047857",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f3f4f6"
+  },
+  "sitemapLocation": "sitemap.json"
+}

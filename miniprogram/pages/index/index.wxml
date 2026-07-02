@@ -1,0 +1,88 @@
+<view class="page">
+  <!-- Brand Header -->
+  <view class="header">
+    <text class="title">怎么回</text>
+    <text class="subtitle">AI 替你说出来</text>
+  </view>
+
+  <!-- 场景快捷标签 -->
+  <scroll-view class="scenes" scroll-x>
+    <view
+      class="scene-tag"
+      wx:for="{{scenes}}"
+      wx:key="*this"
+      data-scene="{{item}}"
+      bindtap="onSceneTap"
+    >{{item}}</view>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <textarea
+    class="textarea"
+    placeholder="把对方说的话粘贴到这里..."
+    value="{{message}}"
+    bindinput="onInput"
+    maxlength="2000"
+    disabled="{{loading}}"
+    auto-height
+  />
+
+  <!-- 亲密度滑块 -->
+  <view class="intimacy-bar">
+    <text class="intimacy-label">{{intimacyLabel}} · {{intimacy}}</text>
+    <slider
+      class="slider"
+      min="0" max="100"
+      value="{{intimacy}}"
+      bindchange="onIntimacyChange"
+      activeColor="#10b981"
+      block-size="20"
+    />
+    <view class="intimacy-range">
+      <text>生疏</text><text>亲密</text>
+    </view>
+  </view>
+
+  <!-- 错误 -->
+  <view class="error" wx:if="{{error}}">{{error}}</view>
+
+  <!-- CTA -->
+  <button
+    class="btn-generate"
+    bindtap="onGenerate"
+    disabled="{{loading || !message}}"
+    loading="{{loading}}"
+  >{{loading ? 'AI 正在想怎么回...' : '帮 我 回'}}</button>
+
+  <button class="btn-pricing" bindtap="onOpenPricing">充值积分</button>
+
+  <!-- 分享 -->
+  <button class="btn-share" open-type="share">分享给朋友</button>
+
+  <!-- 积分充值弹窗 -->
+  <view class="modal-overlay" wx:if="{{showPricing}}" bindtap="onClosePricing">
+    <view class="modal" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">充值积分</text>
+        <text class="modal-close" bindtap="onClosePricing">×</text>
+      </view>
+      <view class="tier-grid">
+        <view
+          class="tier-card {{item.highlight ? 'tier-highlight' : ''}}"
+          wx:for="{{tiers}}"
+          wx:key="tier"
+          data-tier="{{item}}"
+          bindtap="onSelectTier"
+        >
+          <view wx:if="{{item.highlight}}" class="tier-badge">推荐</view>
+          <text class="tier-name">{{item.name}}</text>
+          <text class="tier-price">¥{{item.price}}</text>
+          <text class="tier-desc">{{item.desc}}</text>
+          <view class="tier-btn {{payingTier === item.tier ? 'tier-btn-loading' : ''}}">
+            {{payingTier === item.tier ? '跳转中...' : '去支付'}}
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
