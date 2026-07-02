@@ -242,6 +242,8 @@ function ResultContent() {
           message: result.message,
           intimacy,
           previous_reply: previousText,
+          reply_index: idx,
+          style: styleMode,
         }),
       })
 
@@ -249,8 +251,7 @@ function ResultContent() {
       if (json.success && json.reply) {
         setReplies(prev => {
           const next = [...prev]
-          const i = next.indexOf(previousText)
-          if (i >= 0) next[i] = json.reply
+          if (idx >= 0) next[idx] = json.reply
           return next
         })
       }
