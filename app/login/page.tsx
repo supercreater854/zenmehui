@@ -1,9 +1,11 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase-browser"
+import { LOGIN } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -29,7 +31,7 @@ export default function LoginPage() {
   const handleSendCode = async () => {
     const trimmed = email.trim()
     if (!trimmed || !trimmed.includes("@")) {
-      setError("请输入正确的邮箱地址")
+      setError(t(LOGIN.invalidEmail))
       return
     }
     setError("")
@@ -55,7 +57,7 @@ export default function LoginPage() {
 
   const handleVerifyCode = async () => {
     if (!code.trim()) {
-      setError("请输入验证码")
+      setError(t(LOGIN.enterCode))
       return
     }
     setError("")
@@ -82,20 +84,20 @@ export default function LoginPage() {
     <div className="flex flex-col min-h-screen px-5 py-8">
       <div className="mb-8">
         <Link href="/me" className="text-sm text-gray-400 hover:text-gray-600">
-          返回
+          {t(LOGIN.back)}
         </Link>
       </div>
 
-      <h1 className="text-xl font-semibold text-gray-900 mb-2">邮箱登录</h1>
-      <p className="text-sm text-gray-400 mb-6">登录后可同步联系人数据</p>
+      <h1 className="text-xl font-semibold text-gray-900 mb-2">{t(LOGIN.title)}</h1>
+      <p className="text-sm text-gray-400 mb-6">{t(LOGIN.subtitle)}</p>
 
       {step === "email" ? (
         <>
-          <label className="text-sm text-gray-500 mb-1">邮箱</label>
+          <label className="text-sm text-gray-500 mb-1">{t(LOGIN.email)}</label>
           <input
             type="email"
             className="w-full px-4 py-3 text-sm bg-gray-50 rounded-xl border border-gray-200 outline-none focus:border-emerald-400 mb-4"
-            placeholder="输入邮箱地址"
+            placeholder={t(LOGIN.emailPlaceholder)}
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError("") }}
             onKeyDown={(e) => { if (e.key === "Enter") handleSendCode() }}
@@ -112,19 +114,19 @@ export default function LoginPage() {
             onClick={handleSendCode}
             disabled={loading || !email.trim()}
           >
-            {loading ? "发送中..." : "发送验证码"}
+            {loading ? t(LOGIN.sending) : t(LOGIN.sendCode)}
           </button>
         </>
       ) : (
         <>
           <p className="text-sm text-gray-400 mb-4">
-            验证码已发送至 {email}，请检查收件箱
+            {t(LOGIN.codeSent)}{email}{t(LOGIN.checkInbox)}
           </p>
-          <label className="text-sm text-gray-500 mb-1">验证码</label>
+          <label className="text-sm text-gray-500 mb-1">{t(LOGIN.code)}</label>
           <input
             type="text"
             className="w-full px-4 py-3 text-sm bg-gray-50 rounded-xl border border-gray-200 outline-none focus:border-emerald-400 mb-4"
-            placeholder="输入 6 位验证码"
+            placeholder={t(LOGIN.codePlaceholder)}
             value={code}
             onChange={(e) => { setCode(e.target.value); setError("") }}
             onKeyDown={(e) => { if (e.key === "Enter") handleVerifyCode() }}
@@ -142,14 +144,14 @@ export default function LoginPage() {
             onClick={handleVerifyCode}
             disabled={loading || !code.trim()}
           >
-            {loading ? "验证中..." : "登录"}
+            {loading ? t(LOGIN.verifying) : t(LOGIN.loginBtn)}
           </button>
 
           <button
             className="w-full mt-3 py-3 text-sm text-gray-400 hover:text-gray-600"
             onClick={() => { setStep("email"); setError(""); setCode("") }}
           >
-            重新发送
+            {t(LOGIN.resend)}
           </button>
         </>
       )}

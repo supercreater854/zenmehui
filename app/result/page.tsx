@@ -6,6 +6,8 @@ import { Suspense, useState, useCallback, useEffect, useRef } from "react"
 import ReplyCard from "@/components/ReplyCard"
 import Toast from "@/components/Toast"
 import { getIntimacyLabel, saveContact } from "@/lib/intimacy"
+import { RESULT } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 interface ResultData {
   message: string
@@ -100,7 +102,7 @@ function ResultContent() {
         setReplies(json.replies)
       }
     } catch {
-      setToastMessage("网络异常，请重试")
+      setToastMessage(t(RESULT.networkError))
       setToastVisible(true)
     } finally {
       setReloading(false)
@@ -189,7 +191,7 @@ function ResultContent() {
         setReplies(json.replies)
       }
     } catch {
-      setToastMessage("网络异常，请重试")
+      setToastMessage(t(RESULT.networkError))
       setToastVisible(true)
     } finally {
       setReloading(false)
@@ -221,7 +223,7 @@ function ResultContent() {
       }
     } catch {
       setStyleMode(styleMode) // rollback
-      setToastMessage("网络异常，请重试")
+      setToastMessage(t(RESULT.networkError))
       setToastVisible(true)
     } finally {
       setReloading(false)
@@ -256,7 +258,7 @@ function ResultContent() {
         })
       }
     } catch {
-      setToastMessage("换个说法失败，请重试")
+      setToastMessage(t(RESULT.regenerateFailed))
       setToastVisible(true)
     } finally {
       setRegeningIdx(null)
@@ -270,12 +272,12 @@ function ResultContent() {
     saveContact(name, intimacy)
     setShowSaveContact(false)
     setContactName("")
-    setToastMessage(`已保存联系人：${name}`)
+    setToastMessage(t(RESULT.contactSaved) + name)
     setToastVisible(true)
   }
 
   const handleCopy = useCallback((text: string) => {
-    setToastMessage(`已复制: ${text.length > 15 ? text.slice(0, 15) + "..." : text}`)
+    setToastMessage(t(RESULT.copied) + (text.length > 15 ? text.slice(0, 15) + "..." : text))
     setToastVisible(true)
   }, [])
 
@@ -291,12 +293,12 @@ function ResultContent() {
   if (data && data.length > 3000) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-5">
-        <p className="text-gray-400 text-sm mb-6">结果数据过大，请重新生成</p>
+        <p className="text-gray-400 text-sm mb-6">{t(RESULT.dataTooLarge)}</p>
         <Link
           href="/"
           className="px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600"
         >
-          返回首页
+          {t(RESULT.backHome)}
         </Link>
       </div>
     )
@@ -305,12 +307,12 @@ function ResultContent() {
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-5">
-        <p className="text-gray-400 text-sm mb-6">暂无生成结果</p>
+        <p className="text-gray-400 text-sm mb-6">{t(RESULT.noResult)}</p>
         <Link
           href="/"
           className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl text-sm font-semibold shadow-lg shadow-emerald-200/50"
         >
-          再试一次
+          {t(RESULT.retry)}
         </Link>
       </div>
     )
@@ -320,8 +322,8 @@ function ResultContent() {
     <div className="flex flex-col min-h-screen px-5 py-6">
       {/* Brand Header */}
       <div className="mb-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-5 text-white shadow-lg shadow-emerald-200/50 animate-float-up">
-        <h2 className="text-lg font-bold">AI 帮你想到了这些</h2>
-        <p className="mt-0.5 text-xs text-white/60">仅供参考，建议根据实际情况调整</p>
+        <h2 className="text-lg font-bold">{t(RESULT.title)}</h2>
+        <p className="mt-0.5 text-xs text-white/60">{t(RESULT.disclaimer)}</p>
 
         {/* 亲密度内联调节：长按加减 + 点击数字直输 */}
         <div className="mt-3 flex items-center justify-between bg-white/15 rounded-xl px-4 py-2 backdrop-blur-sm select-none">
@@ -331,7 +333,7 @@ function ResultContent() {
             onPointerUp={() => handlePressUp(-1)}
             onPointerLeave={handlePressLeave}
             disabled={reloading || intimacy <= 0}
-            title="长按连续减"
+            title={t(RESULT.pressHoldMinus)}
           >
             −
           </button>
@@ -353,7 +355,7 @@ function ResultContent() {
             <span
               className="text-sm text-white font-medium cursor-pointer hover:bg-white/10 rounded-lg px-2 py-1 transition-colors"
               onClick={() => { setEditingIntimacy(true); setEditValue(String(intimacy)) }}
-              title="点击直接输入数字"
+              title={t(RESULT.clickEdit)}
             >
               {label} · {intimacy}
             </span>
@@ -365,7 +367,7 @@ function ResultContent() {
             onPointerUp={() => handlePressUp(1)}
             onPointerLeave={handlePressLeave}
             disabled={reloading || intimacy >= 100}
-            title="长按连续加"
+            title={t(RESULT.pressHoldPlus)}
           >
             +
           </button>
@@ -376,7 +378,7 @@ function ResultContent() {
       <div className="flex-1 flex flex-col gap-3">
         {reloading && (
           <div className="text-center py-2">
-            <span className="text-sm text-gray-400">正在重新生成...</span>
+            <span className="text-sm text-gray-400">{t(RESULT.regenerating)}</span>
           </div>
         )}
         {replies.map((text, index) => (
@@ -407,7 +409,7 @@ function ResultContent() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styleMode === "sharp" ? "animate-spin-slow" : ""}>
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z" />
           </svg>
-          {styleMode === "sharp" ? "回到高情商模式" : "换个画风"}
+          {styleMode === "sharp" ? t(RESULT.backToNormal) : t(RESULT.switchStyle)}
         </button>
       </div>
 
@@ -418,7 +420,7 @@ function ResultContent() {
             <input
               type="text"
               className="flex-1 px-4 py-2.5 text-sm bg-gray-50 rounded-xl border border-gray-200 placeholder:text-gray-400 outline-none focus:border-emerald-400 shadow-sm"
-              placeholder="输入昵称"
+              placeholder={t(RESULT.contactPlaceholder)}
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSaveContact() }}
@@ -428,13 +430,13 @@ function ResultContent() {
               className="px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-md"
               onClick={handleSaveContact}
             >
-              保存
+              {t(RESULT.save)}
             </button>
             <button
               className="px-4 py-2.5 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
               onClick={() => setShowSaveContact(false)}
             >
-              取消
+              {t(RESULT.cancel)}
             </button>
           </div>
         ) : (
@@ -442,7 +444,7 @@ function ResultContent() {
             className="w-full py-3 rounded-2xl text-sm font-medium text-gray-500 bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
             onClick={() => setShowSaveContact(true)}
           >
-            加入联系人
+            {t(RESULT.saveContact)}
           </button>
         )}
 
@@ -451,14 +453,14 @@ function ResultContent() {
           onClick={handleRegenerateAll}
           disabled={reloading}
         >
-          {reloading ? "正在生成..." : "再来一组"}
+          {reloading ? t(RESULT.generating) : t(RESULT.anotherSet)}
         </button>
 
         <Link
           href="/"
           className="py-3 text-center text-sm text-gray-400 hover:text-gray-600 transition-colors"
         >
-          返回首页
+          {t(RESULT.backHome)}
         </Link>
       </div>
 
@@ -476,7 +478,7 @@ export default function ResultPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <p className="text-gray-400 text-sm">加载中...</p>
+          <p className="text-gray-400 text-sm">{t(RESULT.loading)}</p>
         </div>
       }
     >

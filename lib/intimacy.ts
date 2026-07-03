@@ -1,4 +1,5 @@
 // ====== 亲密度量表 ======
+import { INTIMACY_I18N } from './i18n'
 
 export interface IntimacyScaleItem {
   min: number
@@ -7,29 +8,55 @@ export interface IntimacyScaleItem {
   prompt: string
 }
 
-export const INTIMACY_SCALE: IntimacyScaleItem[] = [
-  { min: 0,  max: 10, label: '陌生人',   prompt: '极度正式、客套、保持社交距离。不要用表情符号。' },
-  { min: 11, max: 25, label: '泛泛之交', prompt: '有礼貌但不亲近，就事论事。不要用表情符号。' },
-  { min: 26, max: 40, label: '认识的人', prompt: '可以稍微放松，但也保持分寸。可以用0-1个表情符号，保持克制。' },
-  { min: 41, max: 55, label: '普通朋友', prompt: '随和、轻松、可以有点随意。可以用0-1个表情符号。' },
-  { min: 56, max: 70, label: '好朋友',   prompt: '直接、温暖、可以开玩笑、不用太客套。适当用1个表情符号更有温度。' },
-  { min: 71, max: 85, label: '亲密好友', prompt: '很随意、默契、幽默、情感充沛。可以自然用1个表情符号。' },
-  { min: 86, max: 100,label: '家人/伴侣',prompt: '极度亲密、可以撒娇、情感自然流露。可以自然用1-2个表情符号。' },
-]
+// ====== Locale 判定 ======
+function getLocale(): 'zh' | 'en' {
+  // 服务端
+  if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_LOCALE) {
+    return process.env.NEXT_PUBLIC_LOCALE === 'en' ? 'en' : 'zh'
+  }
+  // 客户端
+  if (typeof window !== 'undefined' && window.location.hostname.includes('replycraft')) return 'en'
+  return 'zh'
+}
+
+// ====== 动态量表生成 ======
+function buildScale(): IntimacyScaleItem[] {
+  const locale = getLocale()
+  const labels = INTIMACY_I18N.labels[locale]
+  const prompts = INTIMACY_I18N.prompts[locale]
+  const bounds = [
+    { min: 0, max: 10 },
+    { min: 11, max: 25 },
+    { min: 26, max: 40 },
+    { min: 41, max: 55 },
+    { min: 56, max: 70 },
+    { min: 71, max: 85 },
+    { min: 86, max: 100 },
+  ]
+  return bounds.map((b, i) => ({ ...b, label: labels[i], prompt: prompts[i] }))
+}
+
+export const INTIMACY_SCALE: IntimacyScaleItem[] = buildScale()
 
 export const DEFAULT_INTIMACY = 50
 
 export function getIntimacyLabel(value: number): string {
+  const scale = buildScale()
   const clamped = clamp(value, 0, 100)
-  const item = INTIMACY_SCALE.find(s => clamped >= s.min && clamped <= s.max)
-  return item ? item.label : '普通朋友'
+  const item = scale.find(s => clamped >= s.min && clamped <= s.max)
+  const fallback = getLocale() === 'en' ? 'Casual Friend' : '普通朋友'
+  return item ? item.label : fallback
 }
 
 export function formatIntimacyForPrompt(value: number): string {
+  const locale = getLocale()
+  const scale = buildScale()
   const clamped = clamp(value, 0, 100)
-  const item = INTIMACY_SCALE.find(s => clamped >= s.min && clamped <= s.max)
+  const item = scale.find(s => clamped >= s.min && clamped <= s.max)
   if (!item) return ''
-  return `你和对方的关系是：${item.label}。表达应该${item.prompt}。`
+  return locale === 'en'
+    ? `Your relationship with this person: ${item.label}. Tone should be: ${item.prompt}`
+    : `你和对方的关系是：${item.label}。表达应该${item.prompt}。`
 }
 
 function clamp(v: number, min: number, max: number): number {

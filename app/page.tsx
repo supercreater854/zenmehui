@@ -6,6 +6,8 @@ import Link from "next/link"
 import { DEFAULT_INTIMACY, getIntimacyLabel } from "@/lib/intimacy"
 import IntimacySlider from "@/components/IntimacySlider"
 import { PRICING_TIER_LIST, type PricingTier } from "@/lib/credits"
+import { HOME } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 function getUserId(): string {
   const stored = localStorage.getItem("zmh_user_id")
@@ -16,14 +18,7 @@ function getUserId(): string {
 }
 
 // 首页场景快捷标签
-const SCENES = [
-  "老板让我加班",
-  "对象生气了",
-  "不知道怎么拒绝",
-  "朋友借钱",
-  "被夸了怎么回",
-  "想约人出来",
-]
+const SCENES = t(HOME.scenes)
 
 function HomePageContent() {
   const router = useRouter()
@@ -74,10 +69,10 @@ function HomePageContent() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        setError(data.error || "支付系统暂不可用")
+        setError(data.error || t(HOME.paymentUnavailable))
       }
     } catch {
-      setError("网络错误，请稍后重试")
+      setError(t(HOME.networkRetry))
     } finally {
       setPayingTier(null)
     }
@@ -86,11 +81,11 @@ function HomePageContent() {
   const handleGenerate = async () => {
     const trimmed = message.trim()
     if (!trimmed) {
-      setError("请输入聊天内容")
+      setError(t(HOME.enterContent))
       return
     }
     if (trimmed.length > 2000) {
-      setError("内容过长，请控制在2000字以内")
+      setError(t(HOME.tooLong))
       return
     }
 
@@ -115,9 +110,9 @@ function HomePageContent() {
 
       if (!res.ok) {
         if (data.type === "limit") {
-          setError(data.error || "积分不足，请充值")
+          setError(data.error || t(HOME.noCredits))
         } else {
-          setError(data.error || "生成失败，请重试")
+          setError(data.error || t(HOME.generateFailed))
         }
         return
       }
@@ -129,9 +124,9 @@ function HomePageContent() {
     } catch (err) {
       clearTimeout(timeoutId)
       if (err instanceof DOMException && err.name === "AbortError") {
-        setError("AI响应较慢，请稍后重试")
+        setError(t(HOME.aiSlow))
       } else {
-        setError("网络错误，请检查连接后重试")
+        setError(t(HOME.networkError))
       }
     } finally {
       setLoading(false)
@@ -143,18 +138,18 @@ function HomePageContent() {
     <div className="flex flex-col min-h-screen px-5 py-6">
       {/* Brand Header — gradient card */}
       <div className="mb-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-8 text-white text-center shadow-lg shadow-emerald-200/50">
-        <h1 className="text-3xl font-extrabold tracking-tight">怎么回</h1>
-        <p className="mt-1.5 text-sm text-white/70">AI 替你说出来</p>
+        <h1 className="text-3xl font-extrabold tracking-tight">{t(HOME.brandName)}</h1>
+        <p className="mt-1.5 text-sm text-white/70">{t(HOME.tagline)}</p>
       </div>
 
       {upgradeSuccess && (
         <div className="mb-5 px-4 py-3 bg-emerald-50 text-emerald-600 text-sm rounded-xl text-center">
-          支付成功，积分已到账
+          {t(HOME.paymentSuccess)}
           <button
             className="ml-2 underline"
             onClick={() => setUpgradeSuccess(false)}
           >
-            知道了
+            {t(HOME.gotIt)}
           </button>
         </div>
       )}
@@ -180,7 +175,7 @@ function HomePageContent() {
 
         <textarea
           className="mt-3 w-full flex-1 min-h-[200px] p-5 text-base text-gray-800 bg-white rounded-2xl resize-none placeholder:text-gray-300 border border-gray-100 shadow-md focus:shadow-lg focus:border-emerald-200 outline-none transition-shadow"
-          placeholder="把对方说的话粘贴到这里..."
+          placeholder={t(HOME.placeholder)}
           value={message}
           onChange={(e) => {
             setMessage(e.target.value)
@@ -200,13 +195,13 @@ function HomePageContent() {
             href="/contacts"
             className="flex-1 py-2.5 text-center text-sm font-medium text-gray-500 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-gray-200 transition-colors"
           >
-            联系人
+            {t(HOME.contactsTab)}
           </Link>
           <Link
             href="/me"
             className="flex-1 py-2.5 text-center text-sm font-medium text-gray-500 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-gray-200 transition-colors"
           >
-            我的
+            {t(HOME.meTab)}
           </Link>
         </div>
 
@@ -228,19 +223,19 @@ function HomePageContent() {
           onClick={handleGenerate}
           disabled={loading || !message.trim()}
         >
-          {loading ? "AI 正在想怎么回..." : "帮 我 回"}
+          {loading ? t(HOME.generating) : t(HOME.generateBtn)}
         </button>
 
         <button
           className="mt-3 w-full py-3 rounded-2xl text-sm font-medium text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition-colors"
           onClick={() => setPricingOpen(true)}
         >
-          充值积分
+          {t(HOME.pricingTitle)}
         </button>
       </div>
 
       <p className="mt-8 text-center text-xs text-gray-300">
-        仅供参考，建议根据实际情况调整
+        {t(HOME.disclaimer)}
       </p>
 
       {/* 分享给朋友入口 */}
@@ -254,7 +249,7 @@ function HomePageContent() {
           }
         }}
       >
-        觉得好用？分享给朋友
+        {t(HOME.shareCta)}
       </button>
 
       {/* ====== 积分充值弹窗 ====== */}
@@ -269,7 +264,7 @@ function HomePageContent() {
           >
             {/* 弹窗头部 */}
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">充值积分</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t(HOME.pricingTitle)}</h2>
               <button
                 className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                 onClick={() => setPricingOpen(false)}
@@ -298,7 +293,7 @@ function HomePageContent() {
                 >
                   {tier.highlight && (
                     <span className="absolute -top-2 left-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-emerald-500 rounded-full">
-                      推荐
+                      {t(HOME.recommended)}
                     </span>
                   )}
                   <div className="text-sm font-bold text-gray-900">
@@ -311,7 +306,7 @@ function HomePageContent() {
                     {tier.desc}
                   </div>
                   <div className="mt-2 w-full py-1.5 text-center text-xs font-medium text-emerald-600 bg-white rounded-lg border border-emerald-200">
-                    {payingTier === tier.tier ? "跳转中..." : "去支付"}
+                    {payingTier === tier.tier ? t(HOME.redirecting) : t(HOME.goPay)}
                   </div>
                 </button>
               ))}
@@ -328,7 +323,7 @@ export default function HomePage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <p className="text-gray-400 text-sm">加载中...</p>
+          <p className="text-gray-400 text-sm">{t(HOME.loadMoreContacts)}</p>
         </div>
       }
     >

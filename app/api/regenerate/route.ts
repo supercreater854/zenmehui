@@ -1,19 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { trackEvent } from '@/lib/analytics'
+import { API_ERR } from '@/lib/i18n'
 
 const AI_API_KEY = process.env.AI_API_KEY || ''
 const AI_BASE_URL = process.env.AI_BASE_URL || 'https://api.deepseek.com'
 const AI_MODEL = process.env.AI_MODEL || 'deepseek-chat'
 
+const isEn = () => process.env.NEXT_PUBLIC_LOCALE === 'en'
+
 // ====== 风格标签映射 ======
 type ReplyStyle =
   | '走心' | '幽默' | '犀利'
+  | 'Warm' | 'Funny' | 'Direct'
   | '阴阳怪气·客气型' | '阴阳怪气·反讽型' | '阴阳怪气·暴击型'
+  | 'Polite Shade' | 'Ironic Praise' | 'Absolute Shutdown'
 
-function getStyleLabel(replyIndex: number, mode: 'normal' | 'sharp'): ReplyStyle {
+function getStyleLabel(replyIndex: number, mode: 'normal' | 'sharp', en: boolean): ReplyStyle {
   if (mode === 'sharp') {
+    if (en) {
+      const labels: ReplyStyle[] = ['Polite Shade', 'Ironic Praise', 'Absolute Shutdown']
+      return labels[replyIndex] || 'Ironic Praise'
+    }
     const labels: ReplyStyle[] = ['阴阳怪气·客气型', '阴阳怪气·反讽型', '阴阳怪气·暴击型']
     return labels[replyIndex] || '阴阳怪气·反讽型'
+  }
+  if (en) {
+    const labels: ReplyStyle[] = ['Warm', 'Funny', 'Direct']
+    return labels[replyIndex] || 'Direct'
   }
   const labels: ReplyStyle[] = ['走心', '幽默', '犀利']
   return labels[replyIndex] || '犀利'
@@ -23,8 +36,33 @@ function buildRegeneratePrompt(
   message: string,
   intimacy: number | undefined,
   previousReply: string,
-  replyStyle: ReplyStyle
+  replyStyle: ReplyStyle,
+  en: boolean
 ): string {
+  if (en) {
+    const intimacyHint = intimacy != null
+      ? `Closeness level: ${intimacy}/100.`
+      : ''
+
+    return `You are a high-EQ reply assistant.
+
+They sent: "${message}"
+${intimacyHint}
+
+The user hit "New Suggestion" on a reply that was originally in the 【${replyStyle}】 style.
+Generate a completely different reply in the same 【${replyStyle}】 style.
+
+Requirements:
+- Keep the 【${replyStyle}】 tone and vibe — don't drift styles
+- Use a different angle or strategy from: "${previousReply}"
+- Max 2 sentences, like real text messages
+- No quotation marks around your reply, no explanations, just the reply
+- FORBIDDEN: "I hope this helps", "It's worth noting", "Firstly... Secondly...", "To sum up", "I understand how you feel"
+
+Output just one reply as JSON:
+{"reply": "your new reply"}`
+  }
+
   const intimacyHint = intimacy != null
     ? `双方关系亲密度：${intimacy}（0-100）。`
     : ''
@@ -50,6 +88,8 @@ ${intimacyHint}
 }
 
 export async function POST(request: NextRequest) {
+  const en = isEn()
+
   try {
     const body = await request.clone().json()
     const {
@@ -62,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (!message || !previous_reply) {
       return NextResponse.json(
-        { success: false, error: '缺少参数' },
+        { success: false, error: en ? API_ERR.missingParams.en : API_ERR.missingParams.zh },
         { status: 400 }
       )
     }
@@ -73,8 +113,8 @@ export async function POST(request: NextRequest) {
       style: style ?? 'normal',
     }).catch(() => {})
 
-    const replyStyle = getStyleLabel(reply_index as number, style as 'normal' | 'sharp')
-    const system = buildRegeneratePrompt(message, intimacy, previous_reply, replyStyle)
+    const replyStyle = getStyleLabel(reply_index as number, style as 'normal' | 'sharp', en)
+    const system = buildRegeneratePrompt(message, intimacy, previous_reply, replyStyle, en)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15000)
@@ -103,7 +143,7 @@ export async function POST(request: NextRequest) {
       const errorText = await response.text().catch(() => '')
       console.error(`[regenerate] AI API failed: ${response.status} ${errorText}`)
       return NextResponse.json(
-        { success: false, error: 'AI 请求失败' },
+        { success: false, error: en ? API_ERR.aiRequestFailed.en : API_ERR.aiRequestFailed.zh },
         { status: 500 }
       )
     }
@@ -132,13 +172,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(
-        { success: false, error: '请求超时' },
+        { success: false, error: en ? API_ERR.timeout.en : API_ERR.timeout.zh },
         { status: 504 }
       )
     }
     console.error(`[regenerate] unexpected error:`, error)
     return NextResponse.json(
-      { success: false, error: '生成失败' },
+      { success: false, error: en ? API_ERR.generationFailed.en : API_ERR.generationFailed.zh },
       { status: 500 }
     )
   }

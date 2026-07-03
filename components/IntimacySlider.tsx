@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback } from "react"
 import { getIntimacyLabel } from "@/lib/intimacy"
+import { COMPONENTS } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 interface IntimacySliderProps {
   value: number
@@ -74,7 +76,7 @@ export default function IntimacySlider({ value, onChange }: IntimacySliderProps)
     <div className="w-full">
       {/* 标签行 */}
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm text-gray-500">你俩的关系有多近？</span>
+        <span className="text-sm text-gray-500">{t(COMPONENTS.intimacyLabel)}</span>
 
         <div className="flex items-center gap-1">
           {/* − 按钮（长按连续减） */}
@@ -84,7 +86,7 @@ export default function IntimacySlider({ value, onChange }: IntimacySliderProps)
             onPointerUp={() => handlePressUp(-1)}
             onPointerLeave={handlePressLeave}
             disabled={value <= 0}
-            title="长按连续减"
+            title="−"
           >
             −
           </button>
@@ -163,8 +165,8 @@ export default function IntimacySlider({ value, onChange }: IntimacySliderProps)
 
       {/* 两端标签 */}
       <div className="flex justify-between mt-1">
-        <span className="text-xs text-gray-300">陌生人</span>
-        <span className="text-xs text-gray-300">家人/伴侣</span>
+        <span className="text-xs text-gray-300">{t(COMPONENTS.stranger)}</span>
+        <span className="text-xs text-gray-300">{t(COMPONENTS.family)}</span>
       </div>
     </div>
   )

@@ -3,6 +3,9 @@ import { generateReplies } from '@/lib/ai'
 import { logUsage } from '@/lib/user'
 import { consumeCredit, getRemainingCredits } from '@/lib/credits'
 import { trackEvent } from '@/lib/analytics'
+import { API_ERR } from '@/lib/i18n'
+
+const isEn = () => process.env.NEXT_PUBLIC_LOCALE === 'en'
 
 export async function POST(request: NextRequest) {
   let userId: string | null = null
@@ -12,14 +15,14 @@ export async function POST(request: NextRequest) {
     userId = body.user_id || null
   } catch {
     return NextResponse.json(
-      { success: false, error: '请求格式错误', type: 'user' },
+      { success: false, error: isEn() ? API_ERR.badRequest.en : API_ERR.badRequest.zh, type: 'user' },
       { status: 400 }
     )
   }
 
   if (!userId || typeof userId !== 'string') {
     return NextResponse.json(
-      { success: false, error: '缺少用户标识', type: 'user' },
+      { success: false, error: isEn() ? API_ERR.noUser.en : API_ERR.noUser.zh, type: 'user' },
       { status: 400 }
     )
   }
@@ -30,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     if (!creditCheck.allowed) {
       return NextResponse.json(
-        { success: false, error: creditCheck.reason || '积分不足，请充值', type: 'limit', remaining: creditCheck.remaining },
+        { success: false, error: creditCheck.reason || (isEn() ? API_ERR.noCredits.en : API_ERR.noCredits.zh), type: 'limit', remaining: creditCheck.remaining },
         { status: 429 }
       )
     }
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       console.log(`[ANALYTICS] user_id=${userId} success=false reason=empty_input remaining=${creditCheck.remaining}`)
       return NextResponse.json(
-        { success: false, error: '请输入聊天内容', type: 'user' },
+        { success: false, error: isEn() ? API_ERR.emptyContent.en : API_ERR.emptyContent.zh, type: 'user' },
         { status: 400 }
       )
     }
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (message.trim().length > 2000) {
       console.log(`[ANALYTICS] user_id=${userId} success=false reason=too_long remaining=${creditCheck.remaining}`)
       return NextResponse.json(
-        { success: false, error: '内容过长，请控制在2000字以内', type: 'user' },
+        { success: false, error: isEn() ? API_ERR.tooLong.en : API_ERR.tooLong.zh, type: 'user' },
         { status: 400 }
       )
     }
@@ -86,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     console.error(`[ANALYTICS] user_id=${userId} error=${reason}`)
     return NextResponse.json(
-      { success: false, error: 'AI生成失败，请重试', type: 'system', remaining },
+      { success: false, error: isEn() ? API_ERR.aiFailed.en : API_ERR.aiFailed.zh, type: 'system', remaining },
       { status: 500 }
     )
   }

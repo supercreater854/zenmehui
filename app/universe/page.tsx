@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { loadContacts, getIntimacyLabel, getIntimacyTier, type ContactMemory } from "@/lib/intimacy"
+import { UNIVERSE } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 export default function UniversePage() {
   const router = useRouter()
@@ -56,7 +58,7 @@ export default function UniversePage() {
 
     // 同心圆（内 = 亲密，外 = 疏远）
     const trackCount = 7
-    const labels = ["家人/伴侣", "亲密好友", "好朋友", "普通朋友", "认识的人", "泛泛之交", "陌生人"]
+    const labels = t(UNIVERSE.orbits)
     for (let i = 0; i < trackCount; i++) {
       const r = ((i + 1) / trackCount) * maxR
       ctx.beginPath()
@@ -85,7 +87,7 @@ export default function UniversePage() {
     ctx.fillStyle = "rgba(0,0,0,0.5)"
     ctx.font = "12px sans-serif"
     ctx.textAlign = "center"
-    ctx.fillText("我", cx, cy + 25)
+    ctx.fillText(t(UNIVERSE.centerMe), cx, cy + 25)
 
     // 联系人分布在对应轨道
     const getOrbitColor = (v: number) => {
@@ -146,9 +148,9 @@ export default function UniversePage() {
         <div className="mb-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-5 text-white shadow-lg shadow-emerald-200/50 animate-float-up">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-sm text-white/60 hover:text-white/90 transition-colors">
-              ← 返回
+              {t(UNIVERSE.back)}
             </Link>
-            <h1 className="text-lg font-bold">人际圈</h1>
+            <h1 className="text-lg font-bold">{t(UNIVERSE.title)}</h1>
             <div className="w-10" />
           </div>
         </div>
@@ -164,12 +166,12 @@ export default function UniversePage() {
               <line x1="18" y1="12" x2="22" y2="12" />
             </svg>
           </div>
-          <p className="text-gray-400 text-sm mb-4">添加联系人后这里会看到人际圈分布</p>
+          <p className="text-gray-400 text-sm mb-4">{t(UNIVERSE.empty)}</p>
           <Link
             href="/contacts"
             className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-medium shadow-md active:scale-95 transition-all"
           >
-            去添加联系人
+            {t(UNIVERSE.addContact)}
           </Link>
         </div>
       </div>
@@ -182,9 +184,9 @@ export default function UniversePage() {
       <div className="mb-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-5 text-white shadow-lg shadow-emerald-200/50 animate-float-up">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-sm text-white/60 hover:text-white/90 transition-colors">
-            ← 返回
+            {t(UNIVERSE.back)}
           </Link>
-          <h1 className="text-lg font-bold">人际圈</h1>
+          <h1 className="text-lg font-bold">{t(UNIVERSE.title)}</h1>
           <div className="w-10" />
         </div>
       </div>

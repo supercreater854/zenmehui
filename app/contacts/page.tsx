@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { loadContacts, deleteContact, saveContact, getIntimacyLabel, type ContactMemory } from "@/lib/intimacy"
+import { CONTACTS } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 export default function ContactsPage() {
   const router = useRouter()
@@ -35,14 +37,14 @@ export default function ContactsPage() {
       <div className="mb-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-5 text-white shadow-lg shadow-emerald-200/50 animate-float-up">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-sm text-white/60 hover:text-white/90 transition-colors">
-            ← 返回
+            {t(CONTACTS.back)}
           </Link>
-          <h1 className="text-lg font-bold">联系人</h1>
+          <h1 className="text-lg font-bold">{t(CONTACTS.title)}</h1>
           <button
             className="text-sm text-white/80 hover:text-white font-medium transition-colors"
             onClick={() => setShowNew(true)}
           >
-            + 新建
+            {t(CONTACTS.newContact)}
           </button>
         </div>
       </div>
@@ -52,7 +54,7 @@ export default function ContactsPage() {
           <input
             type="text"
             className="w-full px-3 py-2.5 text-sm bg-gray-50 rounded-xl border border-gray-200 placeholder:text-gray-400 outline-none focus:border-emerald-400 transition-all"
-            placeholder="输入昵称"
+            placeholder={t(CONTACTS.placeholder)}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleNew() }}
@@ -63,13 +65,13 @@ export default function ContactsPage() {
               className="flex-1 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-sm active:scale-95 transition-all"
               onClick={handleNew}
             >
-              创建
+              {t(CONTACTS.create)}
             </button>
             <button
               className="flex-1 py-2.5 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200 active:scale-95 transition-all"
               onClick={() => { setShowNew(false); setNewName("") }}
             >
-              取消
+              {t(CONTACTS.cancel)}
             </button>
           </div>
         </div>
@@ -85,12 +87,12 @@ export default function ContactsPage() {
               <line x1="22" y1="11" x2="16" y2="11" />
             </svg>
           </div>
-          <p className="text-gray-400 text-sm mb-4">还没有联系人</p>
+          <p className="text-gray-400 text-sm mb-4">{t(CONTACTS.empty)}</p>
           <button
             className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-medium shadow-md active:scale-95 transition-all"
             onClick={() => setShowNew(true)}
           >
-            添加第一个联系人
+            {t(CONTACTS.addFirst)}
           </button>
         </div>
       ) : (

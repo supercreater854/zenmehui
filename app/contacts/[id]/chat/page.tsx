@@ -6,6 +6,8 @@ import Link from "next/link"
 import { getContact, getIntimacyLabel } from "@/lib/intimacy"
 import ReplyCard from "@/components/ReplyCard"
 import Toast from "@/components/Toast"
+import { CONTACTS } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 interface ChatRound {
   message: string
@@ -85,9 +87,9 @@ export default function ChatPage() {
   if (!contact) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-5">
-        <p className="text-gray-400 text-sm mb-6">联系人不存在</p>
+        <p className="text-gray-400 text-sm mb-6">{t(CONTACTS.notFound)}</p>
         <Link href="/contacts" className="px-5 py-2.5 bg-green-500 text-white rounded-xl text-sm font-medium">
-          返回联系人
+          {t(CONTACTS.backToContact)}
         </Link>
       </div>
     )
@@ -170,7 +172,7 @@ export default function ChatPage() {
         setMessage("")
       }
     } catch {
-      setToastMessage("网络异常，请重试")
+      setToastMessage(t(CONTACTS.networkError))
       setToastVisible(true)
     } finally {
       clearTimeout(timeoutId)
@@ -203,7 +205,7 @@ export default function ChatPage() {
         saveHistory(updated)
       }
     } catch {
-      setToastMessage("网络异常，请重试")
+      setToastMessage(t(CONTACTS.networkError))
       setToastVisible(true)
     } finally { setLoading(false) }
   }
@@ -224,7 +226,7 @@ export default function ChatPage() {
         setReplies(prev => prev.map(r => r === previousText ? json.reply : r))
       }
     } catch {
-      setToastMessage("换个说法失败，请重试")
+      setToastMessage(t(CONTACTS.regenerateFailed))
       setToastVisible(true)
     }
   }
@@ -260,7 +262,7 @@ export default function ChatPage() {
         saveHistory(updated)
       }
     } catch {
-      setToastMessage("网络异常，请重试")
+      setToastMessage(t(CONTACTS.networkError))
       setToastVisible(true)
     } finally { setLoading(false) }
   }
@@ -268,7 +270,7 @@ export default function ChatPage() {
   const handleCopy = useCallback((text: string) => {
     const idx = replies.indexOf(text)
     if (idx >= 0) markChosen(idx)
-    setToastMessage(`已复制: ${text.length > 15 ? text.slice(0, 15) + "..." : text}`)
+    setToastMessage(t(CONTACTS.copied) + (text.length > 15 ? text.slice(0, 15) + "..." : text))
     setToastVisible(true)
   }, [replies])
 
@@ -278,7 +280,7 @@ export default function ChatPage() {
     <div className="flex flex-col min-h-screen px-5 py-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-sm text-gray-400 hover:text-gray-600 shrink-0">返回</button>
+        <button onClick={() => router.back()} className="text-sm text-gray-400 hover:text-gray-600 shrink-0">{t(CONTACTS.backNav)}</button>
         <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-bold overflow-hidden shrink-0">
           {contact.avatar ? <img src={contact.avatar} alt="" className="w-full h-full object-cover" /> : contact.name[0]}
         </div>
@@ -291,7 +293,7 @@ export default function ChatPage() {
             className="text-xs text-gray-400 hover:text-gray-600"
             onClick={() => setShowHistory(!showHistory)}
           >
-            {showHistory ? "收起记录" : "展开记录"}
+            {showHistory ? t(CONTACTS.collapseHistory) : t(CONTACTS.expandHistory)}
           </button>
         )}
       </div>
@@ -300,7 +302,7 @@ export default function ChatPage() {
       {showHistory && history.rounds.length > 0 && (
         <div className="mb-5 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
-            <span className="text-xs font-medium text-gray-500">对话记录 · {history.rounds.length}轮</span>
+            <span className="text-xs font-medium text-gray-500">{t(CONTACTS.chatHistoryTitle) + history.rounds.length + t(CONTACTS.rounds)}</span>
             {deleteMode ? (
               <div className="flex gap-2">
                 <button
@@ -308,12 +310,12 @@ export default function ChatPage() {
                   onClick={deleteSelected}
                   disabled={selectedRounds.size === 0}
                 >
-                  删除选中({selectedRounds.size})
+                  {t(CONTACTS.deleteSelected) + String(selectedRounds.size) + ")"}
                 </button>
-                <button className="text-xs text-gray-400" onClick={() => { setDeleteMode(false); setSelectedRounds(new Set()) }}>取消</button>
+                <button className="text-xs text-gray-400" onClick={() => { setDeleteMode(false); setSelectedRounds(new Set()) }}>{t(CONTACTS.cancel)}</button>
               </div>
             ) : (
-              <button className="text-xs text-gray-400 hover:text-red-400" onClick={() => setDeleteMode(true)}>管理</button>
+              <button className="text-xs text-gray-400 hover:text-red-400" onClick={() => setDeleteMode(true)}>{t(CONTACTS.manage)}</button>
             )}
           </div>
           <div className="max-h-[35vh] overflow-y-auto divide-y divide-gray-50">
@@ -323,7 +325,7 @@ export default function ChatPage() {
                   <span className="text-xs text-gray-300">{formatTime(round.createdAt)}</span>
                   <div className="flex items-center gap-2">
                     {round.chosen != null && (
-                      <span className="text-xs text-green-500">已选择第{round.chosen + 1}条回复</span>
+                      <span className="text-xs text-green-500">{t(CONTACTS.selectedReply, round.chosen + 1)}</span>
                     )}
                     {!deleteMode ? (
                       <button
@@ -339,7 +341,7 @@ export default function ChatPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-400">
-                  对方：{round.message.slice(0, 60)}{round.message.length > 60 ? "..." : ""}
+                  {t(CONTACTS.them)}{round.message.slice(0, 60)}{round.message.length > 60 ? "..." : ""}
                 </p>
                 {round.chosen != null && (
                   <p className="text-xs text-green-600 mt-1 bg-green-50 rounded px-2 py-1 truncate">
@@ -387,26 +389,26 @@ export default function ChatPage() {
             onClick={handleRegenerateAll}
             disabled={loading}
           >
-            {loading ? "生成中..." : "再来一组"}
+            {loading ? t(CONTACTS.generatingShort) : t(CONTACTS.anotherSet)}
           </button>
         </div>
       )}
 
       {loading && replies.length === 0 && (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-gray-400">AI 正在想怎么回...</p>
+          <p className="text-sm text-gray-400">{t(CONTACTS.generating)}</p>
         </div>
       )}
 
       {/* 输入区 */}
       <div className="mt-auto pt-4 flex flex-col gap-2">
-        <p className="text-center text-xs text-gray-300">仅供参考，建议根据实际情况调整</p>
+        <p className="text-center text-xs text-gray-300">{t(CONTACTS.disclaimer)}</p>
         <div className="flex gap-2">
         <input
           ref={inputRef}
           type="text"
           className="flex-1 px-4 py-3 text-sm bg-white rounded-xl border border-gray-200 placeholder:text-gray-400 outline-none focus:border-green-400 shadow-sm"
-          placeholder="对方说了什么？"
+          placeholder={t(CONTACTS.whatTheySaid)}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleGenerate() }}
@@ -417,7 +419,7 @@ export default function ChatPage() {
           onClick={handleGenerate}
           disabled={loading || !message.trim()}
         >
-          回复
+          {t(CONTACTS.reply)}
         </button>
       </div>
 

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { loadContacts } from "@/lib/intimacy"
 import { createClient, getAnonUserId } from "@/lib/supabase-browser"
+import { ME, CONTACTS } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 export default function MePage() {
   const supabase = createClient()
@@ -53,11 +55,11 @@ export default function MePage() {
   }
 
   const creditsLabel = creditsUnlimited
-    ? "无限积分"
-    : credits !== null ? `${credits} 积分` : "加载中..."
+    ? t(ME.unlimitedCredits)
+    : credits !== null ? `${credits}${t(ME.credits)}` : t(ME.loadingCredits)
   const creditsSubLabel = creditsUnlimited
-    ? "永久会员"
-    : credits !== null && credits <= 5 ? "积分即将用尽" : ""
+    ? t(ME.vipStatus)
+    : credits !== null && credits <= 5 ? t(ME.lowCredits) : ""
 
   return (
     <div className="flex flex-col min-h-screen px-5 py-6">
@@ -65,9 +67,9 @@ export default function MePage() {
       <div className="mb-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-5 text-white shadow-lg shadow-emerald-200/50 animate-float-up">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-sm text-white/60 hover:text-white/90 transition-colors">
-            ← 返回
+            {t(CONTACTS.back)}
           </Link>
-          <h1 className="text-lg font-bold">我的</h1>
+          <h1 className="text-lg font-bold">{t(ME.title)}</h1>
           <div className="w-10" />
         </div>
       </div>
@@ -80,10 +82,10 @@ export default function MePage() {
           </div>
           <div className="flex-1">
             <div className="text-base font-semibold text-gray-800">
-              {authed ? email : "匿名用户"}
+              {authed ? email : t(ME.anonymous)}
             </div>
             <div className="text-xs text-gray-400 mt-0.5">
-              {authed ? "已登录" : `ID: ${userId.slice(0, 8)}...`}
+              {authed ? t(ME.loggedIn) : `ID: ${userId.slice(0, 8)}...`}
             </div>
           </div>
           {authed ? (
@@ -92,26 +94,26 @@ export default function MePage() {
               onClick={handleLogout}
               disabled={loggingOut}
             >
-              {loggingOut ? "退出中..." : "退出登录"}
+              {loggingOut ? t(ME.loggingOut) : t(ME.logout)}
             </button>
           ) : (
             <Link
               href="/login"
               className="px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 active:scale-95 transition-all"
             >
-              登录
+              {t(ME.login)}
             </Link>
           )}
         </div>
         <div className="flex gap-4 text-center">
           <div className="flex-1 bg-gray-50 rounded-xl py-3">
             <div className="text-xl font-bold text-gray-800">{contactCount}</div>
-            <div className="text-xs text-gray-400 mt-0.5">联系人</div>
+            <div className="text-xs text-gray-400 mt-0.5">{t(ME.contactsCount)}</div>
           </div>
           <div className="flex-1 bg-emerald-50 rounded-xl py-3">
             <div className="text-xl font-bold text-emerald-600">{creditsLabel}</div>
             <div className="text-xs text-gray-400 mt-0.5">
-              {creditsSubLabel || "剩余积分"}
+              {creditsSubLabel || t(ME.remainingCredits)}
             </div>
           </div>
         </div>
@@ -123,26 +125,26 @@ export default function MePage() {
           href="/contacts"
           className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors active:bg-gray-100"
         >
-          <span className="text-sm font-medium text-gray-700">联系人管理</span>
-          <span className="text-xs text-gray-400">{contactCount}人 →</span>
+          <span className="text-sm font-medium text-gray-700">{t(ME.contactsManage)}</span>
+          <span className="text-xs text-gray-400">{t(ME.peopleCount, contactCount)}</span>
         </Link>
         <Link
           href="/universe"
           className="flex items-center justify-between px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors active:bg-gray-100"
         >
-          <span className="text-sm font-medium text-gray-700">人际圈</span>
-          <span className="text-xs text-gray-400">查看关系分布 →</span>
+          <span className="text-sm font-medium text-gray-700">{t(ME.universe)}</span>
+          <span className="text-xs text-gray-400">{t(ME.viewDistribution)}</span>
         </Link>
         <button
           className="w-full flex items-center justify-between px-5 py-4 border-t border-gray-50 hover:bg-gray-50 transition-colors active:bg-gray-100 text-left"
           onClick={() => {
             const c = loadContacts()
             navigator.clipboard.writeText(JSON.stringify(c, null, 2))
-            alert("联系人数据已复制到剪贴板")
+            alert(t(ME.dataCopied))
           }}
         >
-          <span className="text-sm font-medium text-gray-700">导出联系人数据</span>
-          <span className="text-xs text-gray-400">备份 →</span>
+          <span className="text-sm font-medium text-gray-700">{t(ME.exportData)}</span>
+          <span className="text-xs text-gray-400">{t(ME.backup)}</span>
         </button>
       </div>
     </div>

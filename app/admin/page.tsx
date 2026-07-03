@@ -6,6 +6,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line,
 } from "recharts"
+import { ADMIN } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 const ADMIN_PASSWORD = "zenmehui2024" // 与 API 保持一致
 
@@ -44,7 +46,7 @@ export default function AdminDashboard() {
       setError("")
       localStorage.setItem("zmh_admin_token", password)
     } else {
-      setError("密码错误")
+      setError(t(ADMIN.wrongPassword))
     }
   }
 
@@ -63,7 +65,7 @@ export default function AdminDashboard() {
     })
       .then((r) => r.json())
       .then(setData)
-      .catch(() => setError("数据加载失败"))
+      .catch(() => setError(t(ADMIN.loadFailed)))
       .finally(() => setLoading(false))
   }, [authed])
 
@@ -71,11 +73,11 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen px-5">
         <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">怎么回 · 数据后台</h1>
+          <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">{t(ADMIN.title)}</h1>
           <input
             type="password"
             className="w-full px-4 py-3 text-sm bg-white rounded-xl border border-gray-200 outline-none focus:border-emerald-400 mb-3"
-            placeholder="输入密码"
+            placeholder={t(ADMIN.passwordPlaceholder)}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleLogin() }}
@@ -85,10 +87,10 @@ export default function AdminDashboard() {
             className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-semibold shadow-md active:scale-95 transition-all"
             onClick={handleLogin}
           >
-            进入后台
+            {t(ADMIN.enter)}
           </button>
           <Link href="/" className="block mt-4 text-center text-xs text-gray-400 hover:text-gray-600">
-            ← 返回首页
+            {t(ADMIN.backHome)}
           </Link>
         </div>
       </div>
@@ -98,7 +100,7 @@ export default function AdminDashboard() {
   if (loading || !data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400 text-sm">加载中...</p>
+        <p className="text-gray-400 text-sm">{t(ADMIN.loading)}</p>
       </div>
     )
   }
@@ -106,10 +108,10 @@ export default function AdminDashboard() {
   const { overview, daily_events, recent_events } = data
 
   const cards = [
-    { label: "总用户数", value: overview.total_users, color: "from-emerald-500 to-teal-500" },
-    { label: "总生成次数", value: overview.total_generations, color: "from-blue-500 to-cyan-500" },
-    { label: "今日生成", value: overview.today_generations, color: "from-orange-500 to-amber-500" },
-    { label: "VIP 用户", value: `${overview.vip_users} (¥${overview.total_revenue})`, color: "from-purple-500 to-pink-500" },
+    { label: t(ADMIN.totalUsers), value: overview.total_users, color: "from-emerald-500 to-teal-500" },
+    { label: t(ADMIN.totalGenerations), value: overview.total_generations, color: "from-blue-500 to-cyan-500" },
+    { label: t(ADMIN.todayGenerations), value: overview.today_generations, color: "from-orange-500 to-amber-500" },
+    { label: t(ADMIN.vipUsers), value: `${overview.vip_users} (¥${overview.total_revenue})`, color: "from-purple-500 to-pink-500" },
   ]
 
   const eventColorMap: Record<string, string> = {
@@ -118,9 +120,9 @@ export default function AdminDashboard() {
     copy: "#3b82f6",
   }
   const eventLabelMap: Record<string, string> = {
-    generate: "生成",
-    regenerate: "换说法",
-    copy: "复制",
+    generate: t(ADMIN.eventGenerate),
+    regenerate: t(ADMIN.eventRegenerate),
+    copy: t(ADMIN.eventCopy),
   }
 
   return (
@@ -129,9 +131,9 @@ export default function AdminDashboard() {
       <div className="mb-5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-5 text-white shadow-lg shadow-emerald-200/50">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-sm text-white/60 hover:text-white/90 transition-colors">
-            ← 返回
+            {t(ADMIN.back)}
           </Link>
-          <h1 className="text-lg font-bold">数据后台</h1>
+          <h1 className="text-lg font-bold">{t(ADMIN.navTitle)}</h1>
           <button
             className="text-sm text-white/60 hover:text-white/90 transition-colors"
             onClick={() => {
@@ -140,7 +142,7 @@ export default function AdminDashboard() {
               setPassword("")
             }}
           >
-            退出
+            {t(ADMIN.logout)}
           </button>
         </div>
       </div>
@@ -160,7 +162,7 @@ export default function AdminDashboard() {
 
       {/* 每日趋势图 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">最近 7 天趋势</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t(ADMIN.trendTitle)}</h2>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={daily_events}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -184,7 +186,7 @@ export default function AdminDashboard() {
 
       {/* 每日柱状图 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">事件分布</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t(ADMIN.distribution)}</h2>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={daily_events}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -200,15 +202,15 @@ export default function AdminDashboard() {
 
       {/* 最近事件 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">最近 50 条事件</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t(ADMIN.recentEvents)}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="text-left text-gray-400">
-                <th className="pb-2 pr-3">时间</th>
-                <th className="pb-2 pr-3">用户</th>
-                <th className="pb-2 pr-3">事件</th>
-                <th className="pb-2">详情</th>
+                <th className="pb-2 pr-3">{t(ADMIN.colTime)}</th>
+                <th className="pb-2 pr-3">{t(ADMIN.colUser)}</th>
+                <th className="pb-2 pr-3">{t(ADMIN.colEvent)}</th>
+                <th className="pb-2">{t(ADMIN.colDetail)}</th>
               </tr>
             </thead>
             <tbody>

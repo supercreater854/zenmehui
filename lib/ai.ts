@@ -1,12 +1,22 @@
 import type { GenerateResponse } from './types'
 import { formatIntimacyForPrompt } from './intimacy'
+import { EN_SYSTEM_PROMPT, EN_SHARP_PROMPT, EN_FALLBACK, EN_SHARP_FALLBACK } from './prompts'
 
 const AI_API_KEY = process.env.AI_API_KEY || ''
 const AI_BASE_URL = process.env.AI_BASE_URL || 'https://api.deepseek.com'
 const AI_MODEL = process.env.AI_MODEL || 'deepseek-chat'
 
+// ====== Locale 判定 ======
+function isEn(): boolean {
+  if (process.env.NEXT_PUBLIC_LOCALE) return process.env.NEXT_PUBLIC_LOCALE === 'en'
+  if (typeof process !== 'undefined' && process.env.VERCEL_URL) {
+    return process.env.VERCEL_URL?.includes('replycraft') || false
+  }
+  return false
+}
+
 // ====== 禁用词列表：AI 口水词，出现就特别不像人 ======
-const BANNED_PREFIX = `## 绝对禁止以下表达（出现任何一条即为不合格）
+const ZH_BANNED_PREFIX = `## 绝对禁止以下表达（出现任何一条即为不合格）
 - "看起来" "值得注意的是" "希望这对你有所帮助"
 - "首先" "其次" "最后" "第一" "第二" 这类分点词
 - "总的来说" "总而言之" "综上所述"
@@ -19,8 +29,21 @@ const BANNED_PREFIX = `## 绝对禁止以下表达（出现任何一条即为不
 
 `
 
-// ====== 主 prompt ======
-const SYSTEM_PROMPT = `你就是一个正在帮朋友想怎么回微信的人。
+const EN_BANNED_PREFIX = `## Absolutely FORBIDDEN phrases (any occurrence = failed)
+- "I hope this helps" "It's worth noting" "It seems that"
+- "Firstly... Secondly... Finally..." numbered lists
+- "To sum up" "In conclusion" "Overall"
+- "I understand how you feel" "I can relate to your situation"
+- "This is indeed a problem"
+- "To some extent" "It must be said"
+- "You've got this!" ending with fake encouragement
+- "You know" (AI filler word)
+- Any sentence wrapped in quotation marks (not how real people text)
+
+`
+
+// ====== 中文主 prompt ======
+const ZH_SYSTEM_PROMPT = `你就是一个正在帮朋友想怎么回微信的人。
 
 核心：你不是客服，不是AI，你是他哥们/闺蜜。
 说话方式：像微信聊天。短。直接。带语气。不要铺垫不要解释。
@@ -34,12 +57,12 @@ const SYSTEM_PROMPT = `你就是一个正在帮朋友想怎么回微信的人。
 每条1-2句话。多用"啊 吧 呢 哈 嘛 哎 哦"这些语气词。
 不要写成作文。就是聊天。
 
-${BANNED_PREFIX}
+${ZH_BANNED_PREFIX}
 输出JSON：
 {"replies":["走心短回复","幽默短回复","直接短回复"]}`
 
-// ====== sharp 模式 ======
-const SHARP_PROMPT = `你是阴阳怪气大师。
+// ====== 中文 sharp 模式 ======
+const ZH_SHARP_PROMPT = `你是阴阳怪气大师。
 
 风格参考：
 - "啊对对对"
@@ -66,16 +89,16 @@ const SHARP_PROMPT = `你是阴阳怪气大师。
 2. 反讽型 → 用夸奖的方式嘲讽
 3. 暴击型 → 极短，冷淡，一个字到一句话
 
-${BANNED_PREFIX}
+${ZH_BANNED_PREFIX}
 输出JSON：
 {"replies":["客气型","反讽型","暴击型"]}`
 
 // ====== Fallback ======
-const FALLBACK: GenerateResponse = {
+const ZH_FALLBACK: GenerateResponse = {
   replies: ['嗯明白', '哈哈哈好的', '收到'],
 }
 
-const SHARP_FALLBACK: GenerateResponse = {
+const ZH_SHARP_FALLBACK: GenerateResponse = {
   replies: ['嗯嗯你说得对', '那你很棒哦', '6'],
 }
 
@@ -105,14 +128,14 @@ async function callAI(system: string, user: string): Promise<string> {
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(`AI API 调用失败 (${response.status}): ${errorText}`)
+      throw new Error(`AI API call failed (${response.status}): ${errorText}`)
     }
 
     const data = await response.json()
     return data.choices?.[0]?.message?.content || ''
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('AI请求超时，请稍后重试')
+      throw new Error(isEn() ? 'AI request timed out' : 'AI请求超时，请稍后重试')
     }
     throw error
   } finally {
@@ -151,22 +174,34 @@ export async function generateReplies(
   intimacy?: number,
   style?: string,
 ): Promise<GenerateResponse> {
-  const basePrompt = style === 'sharp' ? SHARP_PROMPT : SYSTEM_PROMPT
+  const en = isEn()
+  const basePrompt = style === 'sharp'
+    ? (en ? EN_SHARP_PROMPT : ZH_SHARP_PROMPT)
+    : (en ? EN_SYSTEM_PROMPT : ZH_SYSTEM_PROMPT)
+  const fallback = style === 'sharp'
+    ? (en ? EN_SHARP_FALLBACK : ZH_SHARP_FALLBACK)
+    : (en ? EN_FALLBACK : ZH_FALLBACK)
 
   const prompt = intimacy != null
-    ? `${basePrompt}\n\n关系程度：${formatIntimacyForPrompt(intimacy)}`
+    ? `${basePrompt}\n\n${formatIntimacyForPrompt(intimacy)}`
     : basePrompt
 
-  const userMessage = `对方发来："${message}"`
+  const userMessage = en
+    ? `They sent: "${message}"`
+    : `对方发来："${message}"`
 
-  let raw = await callAI(prompt + '\n\n别写作文。短。像真人。', userMessage)
+  const postfix = en
+    ? 'No essays. Short. Like a real person.'
+    : '别写作文。短。像真人。'
+
+  let raw = await callAI(prompt + '\n\n' + postfix, userMessage)
   let result = parseResponse(raw)
   if (result) return result
 
   await new Promise(resolve => setTimeout(resolve, 300))
-  raw = await callAI(prompt, `${userMessage}\n\n直接输出JSON，别啰嗦`)
+  raw = await callAI(prompt, `${userMessage}\n\n${en ? 'Output JSON directly, no filler' : '直接输出JSON，别啰嗦'}`)
   result = parseResponse(raw)
   if (result) return result
 
-  return style === 'sharp' ? SHARP_FALLBACK : FALLBACK
+  return fallback
 }

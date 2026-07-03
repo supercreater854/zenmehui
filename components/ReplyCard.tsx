@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback } from "react"
 import { drawShareImage } from "@/lib/share-image"
 import { getIntimacyTier } from "@/lib/intimacy"
+import { COMPONENTS } from "@/lib/i18n"
+import { t } from "@/lib/t"
 
 /* ====== SVG 图标组件 ====== */
 const IconCopy = () => (
@@ -147,7 +149,7 @@ export default function ReplyCard({
           >
             <span className="text-xs text-emerald-500 font-medium flex items-center gap-1">
               <IconRefresh />
-              换说法
+              {t(COMPONENTS.regenerate)}
             </span>
           </div>
         )}
@@ -183,7 +185,7 @@ export default function ReplyCard({
                 className="mt-2 text-xs text-emerald-500 hover:text-emerald-600 font-medium transition-colors animate-fade-in"
                 onClick={onContinue}
               >
-                继续聊 →
+                {t(COMPONENTS.continueChat)}
               </button>
             )}
           </div>
@@ -199,7 +201,7 @@ export default function ReplyCard({
                 }
               `}
               onClick={handleCopy}
-              title="复制"
+              title={t(COMPONENTS.copy)}
             >
               {copied ? <IconCheck /> : <IconCopy />}
             </button>
@@ -213,7 +215,7 @@ export default function ReplyCard({
                 `}
                 onClick={() => onRegenerate(text)}
                 disabled={regening}
-                title="换说法（也可左滑卡片）"
+                title={t(COMPONENTS.swipeHint)}
               >
                 <div className={regening ? "animate-spin" : ""}>
                   <IconRefresh />
@@ -227,7 +229,7 @@ export default function ReplyCard({
                 className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-150 active:scale-90
                   bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                 onClick={handleShare}
-                title="生成分享图"
+                title={t(COMPONENTS.generateShareImage)}
               >
                 <IconShare />
               </button>
@@ -249,7 +251,7 @@ export default function ReplyCard({
             <div className="p-3">
               <img
                 src={shareDataUrl}
-                alt="分享预览"
+                alt={t(COMPONENTS.sharePreview)}
                 className="w-full rounded-lg"
               />
             </div>
@@ -258,13 +260,13 @@ export default function ReplyCard({
                 className="flex-1 py-3 text-sm text-gray-500 hover:bg-gray-50 transition-colors active:bg-gray-100"
                 onClick={() => setShareOpen(false)}
               >
-                关闭
+                {t(COMPONENTS.close)}
               </button>
               <button
                 className="flex-1 py-3 text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors active:bg-emerald-100 border-l border-gray-100"
                 onClick={handleDownload}
               >
-                保存图片
+                {t(COMPONENTS.saveImage)}
               </button>
             </div>
           </div>
