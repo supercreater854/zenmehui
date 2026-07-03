@@ -5,6 +5,7 @@ import { drawShareImage } from "@/lib/share-image"
 import { getIntimacyTier } from "@/lib/intimacy"
 import { COMPONENTS } from "@/lib/i18n"
 import { t } from "@/lib/t"
+import { trackClient } from "@/lib/track-client"
 
 /* ====== SVG 图标组件 ====== */
 const IconCopy = () => (
@@ -91,6 +92,7 @@ export default function ReplyCard({
     }
     setCopied(true)
     onCopy(text)
+    trackClient('copy', { copied_text: text })
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -99,6 +101,7 @@ export default function ReplyCard({
     const dataUrl = drawShareImage(message || "", text)
     setShareDataUrl(dataUrl)
     setShareOpen(true)
+    trackClient('share', {})
   }
 
   const handleDownload = () => {

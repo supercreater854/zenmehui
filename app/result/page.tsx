@@ -8,6 +8,7 @@ import Toast from "@/components/Toast"
 import { getIntimacyLabel, saveContact } from "@/lib/intimacy"
 import { RESULT } from "@/lib/i18n"
 import { t } from "@/lib/t"
+import { trackClient } from "@/lib/track-client"
 
 interface ResultData {
   message: string
@@ -84,6 +85,7 @@ function ResultContent() {
     setIntimacy(newValue)
     setLabel(getIntimacyLabel(newValue))
     setReloading(true)
+    trackClient('intimacy_change', { intimacy: newValue })
 
     try {
       const res = await fetch("/api/generate", {
@@ -204,6 +206,7 @@ function ResultContent() {
     const newMode = styleMode === "normal" ? "sharp" : "normal"
     setStyleMode(newMode)
     setReloading(true)
+    trackClient('style_switch', { from_style: styleMode, to_style: newMode })
 
     try {
       const res = await fetch("/api/generate", {
