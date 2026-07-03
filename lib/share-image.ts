@@ -1,13 +1,13 @@
-// Canvas 绘制分享图：抖音风金句卡片 v2
-// 返回 data URL（PNG）
-// 改进：问题字更大、留白更少、视觉更紧凑
+// Canvas 分享图 — 外网暗色极简风（Typefully / Poet.so 风格）
+// 返回 data URL（PNG），800×1000，适合 Twitter / Reddit / Instagram
 
-const W = 600
-const H = 720
-const PAD = 44
+const W = 800
+const H = 1000
+const PAD = 56
 const MAX_TEXT_W = W - PAD * 2
+const FONT = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
 
-function drawWrapped(
+function wrapText(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
@@ -15,16 +15,15 @@ function drawWrapped(
   maxWidth: number,
   lineHeight: number,
 ): number {
-  ctx.save()
-  const chars = [...text]
+  const words = text.split(" ")
   let line = ""
   let cy = y
 
-  for (let i = 0; i < chars.length; i++) {
-    const test = line + chars[i]
+  for (let i = 0; i < words.length; i++) {
+    const test = line ? line + " " + words[i] : words[i]
     if (ctx.measureText(test).width > maxWidth && line.length > 0) {
       ctx.fillText(line, x, cy)
-      line = chars[i]
+      line = words[i]
       cy += lineHeight
     } else {
       line = test
@@ -34,11 +33,25 @@ function drawWrapped(
     ctx.fillText(line, x, cy)
     cy += lineHeight
   }
-  ctx.restore()
   return cy
 }
 
-const REPLY_FONT = "bold 32px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif"
+function truncateText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  ellipsis = "...",
+): string {
+  if (ctx.measureText(text).width <= maxWidth) return text
+  let result = ""
+  for (const ch of text) {
+    if (ctx.measureText(result + ch + ellipsis).width > maxWidth) {
+      return result + ellipsis
+    }
+    result += ch
+  }
+  return result
+}
 
 export function drawShareImage(message: string, reply: string): string {
   const canvas = document.createElement("canvas")
@@ -47,94 +60,114 @@ export function drawShareImage(message: string, reply: string): string {
   const ctx = canvas.getContext("2d")!
   if (!ctx) return ""
 
-  // === 背景 ===
-  ctx.fillStyle = "#ffffff"
+  // ====== 背景：暗色渐变 ======
+  const bg = ctx.createLinearGradient(0, 0, W, H)
+  bg.addColorStop(0, "#0f172a")   // slate-900
+  bg.addColorStop(0.5, "#1e1b4b") // indigo-950
+  bg.addColorStop(1, "#0f172a")
+  ctx.fillStyle = bg
   ctx.fillRect(0, 0, W, H)
 
-  // 底部渐变色块
-  const grad = ctx.createLinearGradient(0, H * 0.55, 0, H)
-  grad.addColorStop(0, "rgba(16, 185, 129, 0.04)")
-  grad.addColorStop(1, "rgba(16, 185, 129, 0.15)")
-  ctx.fillStyle = grad
-  ctx.fillRect(0, H * 0.55, W, H * 0.45)
-
-  // 顶部品牌色条
-  const topGrad = ctx.createLinearGradient(0, 0, W, 0)
-  topGrad.addColorStop(0, "#10b981")
-  topGrad.addColorStop(1, "#14b8a6")
-  ctx.fillStyle = topGrad
-  ctx.fillRect(0, 0, W, 5)
-
-  // === 装饰大引号 ===
-  ctx.fillStyle = "rgba(16, 185, 129, 0.12)"
-  ctx.font = "100px Georgia, serif"
-  ctx.fillText("\u201C", PAD - 5, 120)
-
-  // === 对方原话（16px，灰色居中） ===
-  const msgY = 95
-  ctx.fillStyle = "#6b7280"
-  ctx.font = "16px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif"
-
-  const prefix = "「"
-  const suffix = "」"
-  let displayMsg = message
-  const maxMsgW = MAX_TEXT_W - 20
-  if (ctx.measureText(prefix + displayMsg + suffix).width > maxMsgW) {
-    const chars = [...displayMsg]
-    let partial = ""
-    for (const c of chars) {
-      if (ctx.measureText(prefix + partial + c + "..." + suffix).width > maxMsgW) {
-        partial += "..."
-        break
-      }
-      partial += c
-    }
-    displayMsg = partial
+  // 微弱噪点质感（小圆点散布）
+  ctx.fillStyle = "rgba(255,255,255,0.015)"
+  for (let i = 0; i < 80; i++) {
+    const rx = Math.random() * W
+    const ry = Math.random() * H
+    ctx.beginPath()
+    ctx.arc(rx, ry, Math.random() * 2 + 0.5, 0, Math.PI * 2)
+    ctx.fill()
   }
 
+  // ====== 顶部品牌色细条 ======
+  const topGrad = ctx.createLinearGradient(0, 0, W, 0)
+  topGrad.addColorStop(0, "#10b981")
+  topGrad.addColorStop(0.5, "#34d399")
+  topGrad.addColorStop(1, "#10b981")
+  ctx.fillStyle = topGrad
+  ctx.fillRect(0, 0, W, 3)
+
+  // ====== "They said:" 标签 ======
+  const labelY = 130
+  ctx.fillStyle = "rgba(148, 163, 184, 0.6)" // slate-400 at 60%
+  ctx.font = `600 15px ${FONT}`
   ctx.textAlign = "center"
-  ctx.fillText(prefix + displayMsg + suffix, W / 2, msgY)
+  ctx.fillText("They said:", W / 2, labelY)
+
+  // ====== 对方原话（中号，浅灰） ======
+  const msgY = 185
+  ctx.fillStyle = "rgba(203, 213, 225, 0.85)" // slate-300
+  ctx.font = `400 22px ${FONT}`
+
+  const truncatedMsg = truncateText(ctx, message, MAX_TEXT_W - 20)
+  ctx.textAlign = "center"
+  ctx.fillText(`"${truncatedMsg}"`, W / 2, msgY)
   ctx.textAlign = "left"
 
-  // === 分割线 ===
-  const lineY = 125
-  ctx.strokeStyle = "rgba(16, 185, 129, 0.18)"
-  ctx.lineWidth = 1
-  ctx.setLineDash([6, 4])
+  // ====== 分割线：emerald 渐变 ======
+  const divY = 250
+  const divGrad = ctx.createLinearGradient(PAD + 40, divY, W - PAD - 40, divY)
+  divGrad.addColorStop(0, "rgba(16, 185, 129, 0.05)")
+  divGrad.addColorStop(0.3, "rgba(16, 185, 129, 0.25)")
+  divGrad.addColorStop(0.5, "rgba(52, 211, 153, 0.45)")
+  divGrad.addColorStop(0.7, "rgba(16, 185, 129, 0.25)")
+  divGrad.addColorStop(1, "rgba(16, 185, 129, 0.05)")
+  ctx.strokeStyle = divGrad
+  ctx.lineWidth = 1.5
   ctx.beginPath()
-  ctx.moveTo(PAD + 20, lineY)
-  ctx.lineTo(W - PAD - 20, lineY)
-  ctx.stroke()
-  ctx.setLineDash([])
-
-  // === AI 回复（32px 加粗，主视觉） ===
-  const replyStartY = 175
-  ctx.fillStyle = "#111827"
-  ctx.font = REPLY_FONT
-  const endY = drawWrapped(ctx, reply, PAD, replyStartY, MAX_TEXT_W, 46)
-
-  // === 底部品牌 ===
-  const footerY = H - 70
-  ctx.strokeStyle = "rgba(16, 185, 129, 0.12)"
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(PAD + 20, footerY - 8)
-  ctx.lineTo(W - PAD - 20, footerY - 8)
+  ctx.moveTo(PAD + 40, divY)
+  ctx.lineTo(W - PAD - 40, divY)
   ctx.stroke()
 
-  ctx.fillStyle = "#10b981"
-  ctx.font = "bold 18px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif"
+  // 分割线上的小菱形装饰
+  ctx.fillStyle = "rgba(52, 211, 153, 0.5)"
+  ctx.save()
+  ctx.translate(W / 2, divY)
+  ctx.rotate(Math.PI / 4)
+  ctx.fillRect(-4, -4, 8, 8)
+  ctx.restore()
+
+  // ====== AI 回复（大号白色加粗，主角） ======
+  const replyStartY = 330
+  ctx.fillStyle = "#f1f5f9" // slate-100
+  ctx.font = `700 42px ${FONT}`
   ctx.textAlign = "center"
-  ctx.fillText("怎么回", W / 2, footerY + 20)
 
-  ctx.fillStyle = "#9ca3af"
-  ctx.font = "12px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif"
-  ctx.fillText("AI 替你回 · 说话高情商", W / 2, footerY + 42)
+  // 如果回复很短（< 30 字符），用更大字号单行居中
+  if (reply.length <= 30 && !reply.includes("\n")) {
+    ctx.font = `700 52px ${FONT}`
+    ctx.fillText(reply, W / 2, replyStartY + 60)
+  } else {
+    wrapText(ctx, reply, W / 2, replyStartY, MAX_TEXT_W, 56)
+  }
+  ctx.textAlign = "left"
 
-  // 右下装饰
-  ctx.fillStyle = "rgba(16, 185, 129, 0.15)"
+  // ====== 底部品牌 ======
+  const footerY = H - 120
+  ctx.fillStyle = "rgba(16, 185, 129, 0.5)" // emerald-500
+  ctx.font = `700 20px ${FONT}`
+  ctx.textAlign = "center"
+  ctx.fillText("ReplyCraft", W / 2, footerY)
+
+  ctx.fillStyle = "rgba(148, 163, 184, 0.4)" // slate-400
+  ctx.font = `400 13px ${FONT}`
+  ctx.fillText("AI that gets the tone right.", W / 2, footerY + 30)
+
+  // 底部微弱的品牌色线
+  ctx.strokeStyle = "rgba(16, 185, 129, 0.08)"
+  ctx.lineWidth = 1
   ctx.beginPath()
-  ctx.arc(W - 40, H - 40, 28, 0, Math.PI * 2)
+  ctx.moveTo(PAD + 80, footerY - 30)
+  ctx.lineTo(W - PAD - 80, footerY - 30)
+  ctx.stroke()
+
+  // ====== 右下角装饰圆 ======
+  ctx.fillStyle = "rgba(16, 185, 129, 0.08)"
+  ctx.beginPath()
+  ctx.arc(W - 50, H - 50, 40, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = "rgba(16, 185, 129, 0.04)"
+  ctx.beginPath()
+  ctx.arc(W - 50, H - 50, 60, 0, Math.PI * 2)
   ctx.fill()
 
   ctx.textAlign = "left"

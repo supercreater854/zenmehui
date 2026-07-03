@@ -107,7 +107,7 @@ export default function ReplyCard({
   const handleDownload = () => {
     const a = document.createElement("a")
     a.href = shareDataUrl
-    a.download = "zenmehui.png"
+    a.download = "replycraft.png"
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
