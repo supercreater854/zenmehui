@@ -26,3 +26,19 @@ CREATE INDEX IF NOT EXISTS idx_usage_logs_created_at ON usage_logs(created_at);
 -- 4. RLS：关闭（服务端用 service_role key，不需要 RLS）
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE usage_logs DISABLE ROW LEVEL SECURITY;
+
+-- 5. analytics_events 表：精细化埋点
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id    UUID NOT NULL,
+  event      TEXT NOT NULL,
+  payload    JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ae_user_id ON analytics_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_ae_event ON analytics_events(event);
+CREATE INDEX IF NOT EXISTS idx_ae_created_at ON analytics_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_ae_user_event ON analytics_events(user_id, event);
+
+ALTER TABLE analytics_events DISABLE ROW LEVEL SECURITY;

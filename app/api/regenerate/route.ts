@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackEvent } from '@/lib/analytics'
 
 const AI_API_KEY = process.env.AI_API_KEY || ''
 const AI_BASE_URL = process.env.AI_BASE_URL || 'https://api.deepseek.com'
@@ -65,6 +66,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const userId = body.user_id || ''
+    trackEvent(userId, 'regenerate', {
+      reply_index: reply_index ?? undefined,
+      style: style ?? 'normal',
+    }).catch(() => {})
 
     const replyStyle = getStyleLabel(reply_index as number, style as 'normal' | 'sharp')
     const system = buildRegeneratePrompt(message, intimacy, previous_reply, replyStyle)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateReplies } from '@/lib/ai'
 import { logUsage } from '@/lib/user'
 import { consumeCredit, getRemainingCredits } from '@/lib/credits'
+import { trackEvent } from '@/lib/analytics'
 
 export async function POST(request: NextRequest) {
   let userId: string | null = null
@@ -56,6 +57,12 @@ export async function POST(request: NextRequest) {
     const result = await generateReplies(message.trim(), intimacy, style)
 
     await logUsage({ userId, scene: 'generated', success: true })
+    trackEvent(userId, 'generate', {
+      message_length: message.trim().length,
+      intimacy: intimacy ?? undefined,
+      style: style ?? 'normal',
+      reply_count: result.replies.length,
+    }).catch(() => {})
 
     console.log(
       `[ANALYTICS] user_id=${userId} success=true replies=${result.replies.length} remaining=${creditCheck.remaining}`
