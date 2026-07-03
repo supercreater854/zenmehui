@@ -211,6 +211,16 @@ function HomePageContent() {
       <p className="mt-6 text-center text-xs text-gray-300">
         Premium plans coming soon — currently free during beta
       </p>
+
+      {/* ====== 法律链接 ====== */}
+      <div className="mt-4 flex justify-center gap-4 text-xs text-gray-300">
+        <Link href="/privacy" className="hover:text-gray-500 underline">
+          Privacy Policy
+        </Link>
+        <Link href="/terms" className="hover:text-gray-500 underline">
+          Terms of Service
+        </Link>
+      </div>
     </div>
   )
 }
