@@ -24,6 +24,18 @@ export const metadata: Metadata = {
     icon: "/icon.svg",
     apple: "/icon.svg",
   },
+  openGraph: {
+    title: META.title[locale],
+    description: META.description[locale],
+    type: "website",
+    siteName: locale === 'en' ? "ReplyCraft" : "怎么回",
+    locale: locale === 'en' ? "en_US" : "zh_CN",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: META.title[locale],
+    description: META.description[locale],
+  },
 }
 
 export const viewport: Viewport = {

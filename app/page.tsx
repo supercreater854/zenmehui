@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { DEFAULT_INTIMACY, getIntimacyLabel } from "@/lib/intimacy"
 import IntimacySlider from "@/components/IntimacySlider"
-import { PRICING_TIER_LIST, type PricingTier } from "@/lib/credits"
 import { HOME } from "@/lib/i18n"
 import { t } from "@/lib/t"
 
@@ -28,23 +27,11 @@ function HomePageContent() {
   const [error, setError] = useState("")
   const abortRef = useRef<AbortController | null>(null)
   const [userId, setUserId] = useState<string>("")
-  const [payingTier, setPayingTier] = useState<string | null>(null)
-  const [pricingOpen, setPricingOpen] = useState(false)
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false)
   const [intimacy, setIntimacy] = useState(DEFAULT_INTIMACY)
 
   useEffect(() => {
     setUserId(getUserId())
   }, [])
-
-  useEffect(() => {
-    if (searchParams.get("upgrade") === "success") {
-      setUpgradeSuccess(true)
-      const url = new URL(window.location.href)
-      url.searchParams.delete("upgrade")
-      window.history.replaceState({}, "", url.toString())
-    }
-  }, [searchParams])
 
   // 从 URL 参数预填消息（「继续聊」跳转回来）
   useEffect(() => {
@@ -56,27 +43,6 @@ function HomePageContent() {
       window.history.replaceState({}, "", url.toString())
     }
   }, [searchParams])
-
-  const handlePay = async (tier: PricingTier) => {
-    setPayingTier(tier.tier)
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, tier: tier.tier }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setError(data.error || t(HOME.paymentUnavailable))
-      }
-    } catch {
-      setError(t(HOME.networkRetry))
-    } finally {
-      setPayingTier(null)
-    }
-  }
 
   const handleGenerate = async () => {
     const trimmed = message.trim()
@@ -136,23 +102,19 @@ function HomePageContent() {
 
   return (
     <div className="flex flex-col min-h-screen px-5 py-6">
-      {/* Brand Header — gradient card */}
+      {/* Brand Header — 差异化定位：多场景关系感知 */}
       <div className="mb-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-8 text-white text-center shadow-lg shadow-emerald-200/50">
         <h1 className="text-3xl font-extrabold tracking-tight">{t(HOME.brandName)}</h1>
-        <p className="mt-1.5 text-sm text-white/70">{t(HOME.tagline)}</p>
-      </div>
+        <p className="mt-2 text-lg font-semibold text-white/95">{t(HOME.tagline)}</p>
+        <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-xs mx-auto">{t(HOME.heroDescription)}</p>
 
-      {upgradeSuccess && (
-        <div className="mb-5 px-4 py-3 bg-emerald-50 text-emerald-600 text-sm rounded-xl text-center">
-          {t(HOME.paymentSuccess)}
-          <button
-            className="ml-2 underline"
-            onClick={() => setUpgradeSuccess(false)}
-          >
-            {t(HOME.gotIt)}
-          </button>
+        {/* 三种回复风格徽章 */}
+        <div className="mt-4 flex justify-center gap-2">
+          <span className="px-3 py-1.5 text-xs font-medium bg-white/20 rounded-full backdrop-blur-sm">{t(HOME.styleWarm)}</span>
+          <span className="px-3 py-1.5 text-xs font-medium bg-white/20 rounded-full backdrop-blur-sm">{t(HOME.styleFunny)}</span>
+          <span className="px-3 py-1.5 text-xs font-medium bg-white/20 rounded-full backdrop-blur-sm">{t(HOME.styleDirect)}</span>
         </div>
-      )}
+      </div>
 
       {/* 输入区域 */}
       <div className="flex-1 flex flex-col">
@@ -225,13 +187,6 @@ function HomePageContent() {
         >
           {loading ? t(HOME.generating) : t(HOME.generateBtn)}
         </button>
-
-        <button
-          className="mt-3 w-full py-3 rounded-2xl text-sm font-medium text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition-colors"
-          onClick={() => setPricingOpen(true)}
-        >
-          {t(HOME.pricingTitle)}
-        </button>
       </div>
 
       <p className="mt-8 text-center text-xs text-gray-300">
@@ -252,68 +207,10 @@ function HomePageContent() {
         {t(HOME.shareCta)}
       </button>
 
-      {/* ====== 积分充值弹窗 ====== */}
-      {pricingOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center"
-          onClick={() => setPricingOpen(false)}
-        >
-          <div
-            className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md p-6 shadow-xl animate-slide-up"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 弹窗头部 */}
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">{t(HOME.pricingTitle)}</h2>
-              <button
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                onClick={() => setPricingOpen(false)}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                </svg>
-              </button>
-            </div>
-
-            {/* 积分卡片 2x2 */}
-            <div className="grid grid-cols-2 gap-3">
-              {PRICING_TIER_LIST.map((tier) => (
-                <button
-                  key={tier.tier}
-                  className={`
-                    relative text-left p-4 rounded-xl border-2 transition-all
-                    ${tier.highlight
-                      ? "border-emerald-400 bg-emerald-50/50 shadow-sm"
-                      : "border-gray-100 hover:border-emerald-200 bg-gray-50/50"
-                    }
-                    ${payingTier === tier.tier ? "opacity-60 pointer-events-none" : ""}
-                  `}
-                  onClick={() => handlePay(tier)}
-                  disabled={payingTier !== null}
-                >
-                  {tier.highlight && (
-                    <span className="absolute -top-2 left-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-emerald-500 rounded-full">
-                      {t(HOME.recommended)}
-                    </span>
-                  )}
-                  <div className="text-sm font-bold text-gray-900">
-                    {tier.name}
-                  </div>
-                  <div className="mt-1 text-lg font-extrabold text-emerald-600">
-                    ¥{tier.price}
-                  </div>
-                  <div className="mt-0.5 text-[11px] text-gray-400">
-                    {tier.desc}
-                  </div>
-                  <div className="mt-2 w-full py-1.5 text-center text-xs font-medium text-emerald-600 bg-white rounded-lg border border-emerald-200">
-                    {payingTier === tier.tier ? t(HOME.redirecting) : t(HOME.goPay)}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ====== 付费计划即将推出 ====== */}
+      <p className="mt-6 text-center text-xs text-gray-300">
+        Premium plans coming soon — currently free during beta
+      </p>
     </div>
   )
 }

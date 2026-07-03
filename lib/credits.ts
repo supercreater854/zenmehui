@@ -23,7 +23,7 @@ export const PRICING_TIER_LIST = Object.values(PRICING_TIERS)
 
 import { supabase, hasSupabase } from './supabase'
 
-const INITIAL_FREE_CREDITS = 10
+const INITIAL_FREE_CREDITS = -1 // 免费期间无限使用
 const LOCAL_UNLIMITED = 999999
 
 // 本地降级：无限积分

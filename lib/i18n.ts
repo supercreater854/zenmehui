@@ -25,8 +25,24 @@ export const HOME = {
     en: "ReplyCraft",
   },
   tagline: {
-    zh: "AI 替你说出来",
-    en: "AI says it for you",
+    zh: "同一句话，不同关系，不同回复",
+    en: "Same message. Different person. Different reply.",
+  },
+  heroDescription: {
+    zh: "告诉 AI 你跟对方有多熟，它会自动切换语气——从官方客气到亲密无间",
+    en: "Tell AI how close you are, and it switches tone—from professional to intimate",
+  },
+  styleWarm: {
+    zh: "走心",
+    en: "Warm",
+  },
+  styleFunny: {
+    zh: "幽默",
+    en: "Funny",
+  },
+  styleDirect: {
+    zh: "犀利",
+    en: "Direct",
   },
   placeholder: {
     zh: "把对方说的话粘贴到这里...",
