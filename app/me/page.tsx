@@ -19,11 +19,11 @@ export default function MePage() {
   const [creditsUnlimited, setCreditsUnlimited] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
+    supabase.auth.getUser().then((res) => {
+      if (res.data.user) {
         setAuthed(true)
-        setUserId(data.user.id)
-        setEmail(data.user.email || "")
+        setUserId(res.data.user.id)
+        setEmail(res.data.user.email || "")
       } else {
         setUserId(getAnonUserId())
       }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import type { AuthChangeEvent, Session } from "@supabase/auth-js"
 import { createClient } from "@/lib/supabase-browser"
 import { LOGIN } from "@/lib/i18n"
 import { t } from "@/lib/t"
@@ -19,7 +20,7 @@ export default function LoginPage() {
 
   // magic link 回调后自动检测登录态
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) {
         localStorage.setItem("zmh_user_id", session.user.id)
         router.push("/me")
