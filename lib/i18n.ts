@@ -109,6 +109,31 @@ export const HOME = {
     zh: "网络错误，请稍后重试",
     en: "Network error, please try later",
   },
+  // mode switch
+  modeQuick: {
+    zh: "快速回复",
+    en: "Quick Reply",
+  },
+  modeScenario: {
+    zh: "场景参谋",
+    en: "Advisor",
+  },
+  scenarioPlaceholder: {
+    zh: "把整个情况告诉我：谁、发生了什么、你希望怎样、有什么顾虑...",
+    en: "Tell me the whole situation: who, what happened, what you want, what you're worried about...",
+  },
+  scenarioHint: {
+    zh: "描述越详细，分析越精准。可以持续追问。",
+    en: "The more detail, the better the analysis. You can follow up.",
+  },
+  scenarioRequired: {
+    zh: "请输入你的场景",
+    en: "Please describe your situation",
+  },
+  scenarioGenerateBtn: {
+    zh: "帮 我 分 析",
+    en: "Analyze",
+  },
   // scenes
   scenes: {
     zh: ["老板让我加班", "对象生气了", "不知道怎么拒绝", "朋友借钱", "被夸了怎么回", "想约人出来"],
@@ -242,6 +267,58 @@ export const RESULT = {
     zh: "加载中...",
     en: "Loading...",
   },
+  selectHint: {
+    zh: "点一张卡片选中它，其余会自动消失",
+    en: "Tap a card to select it — others will disappear",
+  },
+  selectedHint: {
+    zh: "已选择回复 — 其余已粉碎",
+    en: "Reply selected — others discarded",
+  },
+  continueChat: {
+    zh: "继续聊 →",
+    en: "Continue Chat →",
+  },
+  regenerateSet: {
+    zh: "不满意？换一组",
+    en: "Not satisfied? Try another set",
+  },
+  savedToHistory: {
+    zh: "已复制 — 3 秒后自动保存到历史",
+    en: "Copied — auto-saving to history",
+  },
+  scenarioOptimizing: {
+    zh: "场景参谋功能优化中，请通过快速回复体验",
+    en: "Scenario advisor is being optimized, try quick reply",
+  },
+} as const
+
+// ---------- 场景参谋结果页 ----------
+export const SCENARIO = {
+  title: {
+    zh: "场景参谋",
+    en: "Advisor",
+  },
+  analyzing: {
+    zh: "正在分析局势...",
+    en: "Analyzing the situation...",
+  },
+  inputPlaceholder: {
+    zh: "继续聊...",
+    en: "Continue the conversation...",
+  },
+  sendBtn: {
+    zh: "发送",
+    en: "Send",
+  },
+  backHome: {
+    zh: "回到首页",
+    en: "Back to Home",
+  },
+  newSession: {
+    zh: "新对话",
+    en: "New Session",
+  },
 } as const
 
 // ---------- "我的"页 ----------
@@ -325,6 +402,27 @@ export const ME = {
   dataCopied: {
     zh: "联系人数据已复制到剪贴板",
     en: "Contact data copied to clipboard",
+  },
+  // history
+  historyTitle: {
+    zh: "历史记录",
+    en: "History",
+  },
+  historyEmpty: {
+    zh: "暂无历史记录",
+    en: "No history yet",
+  },
+  historyLoading: {
+    zh: "加载中...",
+    en: "Loading...",
+  },
+  historyQuick: {
+    zh: "快速回复",
+    en: "Quick Reply",
+  },
+  historyScenario: {
+    zh: "场景参谋",
+    en: "Advisor",
   },
 } as const
 

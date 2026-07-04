@@ -380,7 +380,7 @@ export default function ChatPage() {
                 onCopy={handleCopy}
                 onRegenerate={handleRegenerateOne}
                 onContinue={() => inputRef.current?.focus()}
-                chosen={chosenIdx === i}
+                selected={chosenIdx === i}
               />
             ))}
           </div>

@@ -147,6 +147,49 @@ export default function MePage() {
           <span className="text-xs text-gray-400">{t(ME.backup)}</span>
         </button>
       </div>
+
+      {/* ====== 历史记录 ====== */}
+      <HistorySection userId={userId} />
+
+    </div>
+  )
+}
+
+// ====== 历史记录客户端组件 ======
+function HistorySection({ userId }: { userId: string }) {
+  const [sessions, setSessions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!userId) return
+    setLoading(true)
+    fetch(`/api/sessions?user_id=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .then(d => { if (d.sessions) setSessions(d.sessions) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [userId])
+
+  if (!userId) return null
+
+  return (
+    <div id="history" className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-3 animate-card-in" style={{ animationDelay: "0.2s" }}>
+      <div className="px-5 py-4 border-b border-gray-50">
+        <h3 className="text-sm font-semibold text-gray-700">历史记录</h3>
+      </div>
+      {loading && <div className="px-5 py-8 text-center text-sm text-gray-400">加载中...</div>}
+      {!loading && sessions.length === 0 && <div className="px-5 py-8 text-center text-sm text-gray-400">暂无历史记录</div>}
+      {sessions.map((s: any) => (
+        <div key={s.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-gray-700 truncate">{s.title}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {s.mode === 'scenario' ? '场景参谋' : '快速回复'} · {new Date(s.updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+          <span className="text-xs text-gray-300">{s.mode === 'scenario' ? '🎯' : '💬'}</span>
+        </div>
+      ))}
     </div>
   )
 }

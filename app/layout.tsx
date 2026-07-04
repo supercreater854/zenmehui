@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import PWAProvider from "@/components/PWAProvider"
+import { ReplyModeProvider } from "@/lib/reply-mode"
 import { META } from "@/lib/i18n"
 
 function getLocale(): 'zh' | 'en' {
@@ -54,9 +55,11 @@ export default function RootLayout({
     <html lang={locale === 'en' ? 'en' : 'zh-CN'} className="h-full">
       <body className="min-h-full bg-gray-50 text-gray-900 antialiased">
         <PWAProvider />
-        <div className="mx-auto max-w-md min-h-screen bg-white shadow-sm">
-          {children}
-        </div>
+        <ReplyModeProvider>
+          <div className="mx-auto max-w-md min-h-screen bg-white shadow-sm">
+            {children}
+          </div>
+        </ReplyModeProvider>
       </body>
     </html>
   )

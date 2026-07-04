@@ -7,6 +7,8 @@ export type AnalyticsEvent =
   | 'style_switch'
   | 'intimacy_change'
   | 'page_view'
+  | 'scenario_analyze'
+  | 'scenario_followup'
 
 export interface AnalyticsPayload {
   // generate

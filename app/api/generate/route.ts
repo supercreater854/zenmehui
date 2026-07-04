@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateReplies } from '@/lib/ai'
+import { generateReplies, generateRepliesStream, analyzeScenario } from '@/lib/ai'
 import { logUsage } from '@/lib/user'
 import { consumeCredit, getRemainingCredits } from '@/lib/credits'
 import { trackEvent } from '@/lib/analytics'
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { message, intimacy, style } = body
+    const { message, intimacy, style, mode, scenario, history, stream } = body
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       console.log(`[ANALYTICS] user_id=${userId} success=false reason=empty_input remaining=${creditCheck.remaining}`)
@@ -57,7 +57,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await generateReplies(message.trim(), intimacy, style)
+    // ====== 模式分支 ======
+    if (mode === 'scenario') {
+      // 参谋模式：message 是场景描述或追问
+      // history 是之前的对话记录（追问时传入）
+      const result = await analyzeScenario(message.trim(), intimacy, history)
+      await logUsage({ userId, scene: 'scenario_analyzed', success: true })
+      trackEvent(userId, 'scenario_analyze', {
+        message_length: message.trim().length,
+        intimacy: intimacy ?? undefined,
+      }).catch(() => {})
+
+      console.log(
+        `[ANALYTICS] user_id=${userId} mode=scenario success=true remaining=${creditCheck.remaining}`
+      )
+      return NextResponse.json({ success: true, scenario_result: result, remaining: creditCheck.remaining })
+    }
+
+    // ====== 快速回复 + 流式 ======
+    if (stream) {
+      const encoder = new TextEncoder()
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            const gen = generateRepliesStream(message.trim(), intimacy, style, scenario)
+            for await (const event of gen) {
+              controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'))
+            }
+            controller.close()
+
+            await logUsage({ userId, scene: 'generated', success: true })
+            trackEvent(userId, 'generate', {
+              message_length: message.trim().length,
+              intimacy: intimacy ?? undefined,
+              style: style ?? 'normal',
+            }).catch(() => {})
+          } catch (error) {
+            const errMsg = error instanceof Error ? error.message : 'unknown'
+            controller.enqueue(encoder.encode(JSON.stringify({ type: 'error', error: errMsg }) + '\n'))
+            controller.close()
+            await logUsage({ userId, scene: 'unknown', success: false }).catch(() => {})
+          }
+        },
+      })
+
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'application/x-ndjson',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      })
+    }
+
+    // 快速回复模式（非流式）
+    const result = await generateReplies(message.trim(), intimacy, style, scenario)
 
     await logUsage({ userId, scene: 'generated', success: true })
     trackEvent(userId, 'generate', {
@@ -68,7 +122,7 @@ export async function POST(request: NextRequest) {
     }).catch(() => {})
 
     console.log(
-      `[ANALYTICS] user_id=${userId} success=true replies=${result.replies.length} remaining=${creditCheck.remaining}`
+      `[ANALYTICS] user_id=${userId} mode=quick success=true replies=${result.replies.length} remaining=${creditCheck.remaining}`
     )
     return NextResponse.json({ success: true, ...result, remaining: creditCheck.remaining })
   } catch (error) {
